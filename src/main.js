@@ -7,15 +7,31 @@ import { Preloader } from './scenes/Preloader';
 //  Find out more information about the Game Config at:
 //  https://newdocs.phaser.io/docs/3.70.0/Phaser.Types.Core.GameConfig
 const config = {
-    type: Phaser.AUTO,
-    width: 1024,
-    height: 768,
-    parent: 'game-container',
-    backgroundColor: '#028af8',
-    scale: {
-        mode: Phaser.Scale.FIT,
-        autoCenter: Phaser.Scale.CENTER_BOTH
+    type: Phaser.WEBGL,
+    pixelArt: true,
+    backgroundColor: '#3fff22',
+    disableContextMenu: true,
+    scale:
+    {
+      mode: Phaser.Scale.NONE,
+      //autoCenter: Phaser.Scale.CENTER_BOTH,
+      width: 256,
+      height: 200,
+      zoom: 3
     },
+    input:
+    {
+      touch: false
+    },  
+    fps:
+    {
+      target: 50
+    },
+    // loader: {
+    //   // baseURL: 'https://labs.phaser.io/',
+    //   baseURL: 'https://i.ibb.co/YhGPn4S',
+    //   crossOrigin: 'anonymous'
+    //   },
     scene: [
         Boot,
         Preloader,

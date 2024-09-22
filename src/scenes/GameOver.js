@@ -1,22 +1,24 @@
 import { Scene } from 'phaser';
 
+import CommonSceneNames from './CommonSceneNames';
+
 export class GameOver extends Scene
 {
     constructor ()
     {
-        super('GameOver');
+        super(CommonSceneNames[1]);
     }
 
     create ()
     {
+        console.log("Starting:", this.scene.key);
+
         this.cameras.main.setBackgroundColor(0xff0000);
 
-        this.add.image(512, 384, 'background').setAlpha(0.5);
+        this.add.image(88, 88, 'background')
 
-        this.add.text(512, 384, 'Game Over', {
-            fontFamily: 'Arial Black', fontSize: 64, color: '#ffffff',
-            stroke: '#000000', strokeThickness: 8,
-            align: 'center'
+        this.add.text(88, 88, 'Game Over', {
+            fontFamily: 'Arial Black', fontSize: 24, color: '#ffffff', align: 'center'
         }).setOrigin(0.5);
 
         this.input.once('pointerdown', () => {
