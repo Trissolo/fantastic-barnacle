@@ -18,10 +18,19 @@ export class MainMenu extends Scene
       create ()
       {
         console.log("Starting:", this.scene.key);
-        console.log("Font", this.cache.bitmapFont.get('bitsy').data.lineHeight);
-        console.log("Font", this.cache.bitmapFont.get('bitsy'));
+        // console.log("Font", this.cache.bitmapFont.get('bitsy').data.lineHeight);
+        // console.log("Font", this.cache.bitmapFont.get('bitsy'));
 
-        this.rect = this.add.image(6, -990, "__WHITE").setOrigin(0).setScale(13, 2.2).setVisible(false);
+        // add new frame
+        this.textures.get('bitsy').add("whitePixel", 0, 1, 0, 1, 1);
+
+        // const testTexture = this.textures.get('bitsy');
+
+        // testTexture.add("whitePixel", 0, 1, 0, 1, 1);
+
+        // console.log(testTexture);
+
+        this.rect = this.add.image(6, -990, 'bitsy', 'whitePixel').setOrigin(0).setScale(60, 9).setVisible(false);
 
         const refText = this.add.bitmapText(8, 10, 'bitsy', CommonSceneNames)
         .setOrigin(0)
@@ -31,16 +40,41 @@ export class MainMenu extends Scene
         .on(Phaser.Input.Events.GAMEOBJECT_POINTER_MOVE, this.onMove, this)
         .on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, () => this.rect.setVisible(true))
         .on(Phaser.Input.Events.GAMEOBJECT_POINTER_OUT, () => this.rect.setVisible(false));
-
         
         refText.input.hitArea.height -= 1;
 
-        console.log('HitArea', refText.input.hitArea.height);
+        // console.log('HitArea', refText.input.hitArea.height, this.textures);
         // this.input.once('pointerdown', () => {
 
         //     this.scene.start('Game');
 
         // });
+        
+        // test block
+        {
+          // this.input.setPollAlways();
+          // const ht = this.input.hitTestPointer(this.input.activePointer);
+          // const {worldX:px, worldY:py} = this.input.activePointer
+          // console.log("HT!:", refText.input.hitArea, px, py);
+          // const manualCheck = Phaser.Geom.Rectangle.Contains(refText.input.hitArea, px, py)
+          // console.log("INPUT", manualCheck, this.input);
+          const {x: px, y: py} = this.input.activePointer;
+
+          const fakeHitTest = Phaser.Geom.Rectangle.Contains({type: 5, x: refText.x, y: refText.y, width: 48, height: 15}, px, py);
+
+          // console.log("Hit", fakeHitTest);
+
+          if (fakeHitTest)
+          {
+            this.rect.setPosition(this.rect.x,   Phaser.Math.Snap.Floor(py, 8, refText.y) - 1)
+                      .setVisible(true);
+
+            // this.rect.y = Phaser.Math.Snap.Floor(py, 8, refText.y) - 1;
+            
+            // this.rect.setVisible(true);
+          }
+        }
+        //end block
     }
     onMove(pointer, x, y)
     {
@@ -61,6 +95,11 @@ export class MainMenu extends Scene
 
         this.scene.start(CommonSceneNames[index]);
     }
+
+    // update(time, delta)
+    // {
+    //   console.log(this.input_pollTimer);
+    // }
 
 
 
