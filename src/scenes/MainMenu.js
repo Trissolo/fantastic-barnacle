@@ -4,11 +4,11 @@ import CommonSceneNames from './CommonSceneNames';
 
 export class MainMenu extends Scene
 {
-    edge = 32;
-    gap = 6;
-    allowed = 26; // that is: edge - gap // 32 - 6
+    // edge = 32;
+    // gap = 6;
+    // allowed = 26; // that is: edge - gap // 32 - 6
 
-    percent = this.allowed / this.edge;
+    // percent = this.allowed / this.edge;
 
     constructor ()
     {
@@ -30,14 +30,19 @@ export class MainMenu extends Scene
 
         // console.log(testTexture);
 
-        this.rect = this.add.image(6, -990, 'bitsy', 'whitePixel').setOrigin(0).setScale(60, 9).setVisible(false);
+        this.rect = this.add.image(6, -990, 'bitsy', 'whitePixel')
+          .setOrigin(0)
+          .setScale(60, 8)
+          // .setBlendMode(Phaser.BlendModes.MULTIPLY)
+          // .setDepth(1)
+          .setVisible(false);
 
         const refText = this.add.bitmapText(8, 10, 'bitsy', CommonSceneNames)
         .setOrigin(0)
         .setTintFill(0x454589)
         .setInteractive()
         .on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, this.clickedText, this)
-        .on(Phaser.Input.Events.GAMEOBJECT_POINTER_MOVE, this.onMove, this)
+        .on(Phaser.Input.Events.GAMEOBJECT_POINTER_MOVE, this.onMove) //, this)
         .on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, () => this.rect.setVisible(true))
         .on(Phaser.Input.Events.GAMEOBJECT_POINTER_OUT, () => this.rect.setVisible(false));
         
@@ -66,10 +71,10 @@ export class MainMenu extends Scene
 
           if (fakeHitTest)
           {
-            this.rect.setPosition(this.rect.x,   Phaser.Math.Snap.Floor(py, 8, refText.y) - 1)
+            this.rect.setPosition(this.rect.x,   Phaser.Math.Snap.Floor(py, 8, refText.y))
                       .setVisible(true);
 
-            // this.rect.y = Phaser.Math.Snap.Floor(py, 8, refText.y) - 1;
+            // this.rect.y = Phaser.Math.Snap.Floor(py, 8, refText.y);
             
             // this.rect.setVisible(true);
           }
@@ -78,9 +83,13 @@ export class MainMenu extends Scene
     }
     onMove(pointer, x, y)
     {
-      const gag = Phaser.Math.Snap.Floor(y, 8, 0);
+      // const gag = Phaser.Math.Snap.Floor(y, 8, 0);
 
-      this.rect.y = gag + 9;
+      // console.log("Moving", Math.floor(y/8));
+
+      // const index = Math.max(0, Math.floor(y / 8));
+
+      this.scene.rect.y = this.y + Math.floor(y / 8) * 8;//gag + 9; //8 + index * 8;
     }
 
     clickedText(pointer, x, y, stopPropagation)

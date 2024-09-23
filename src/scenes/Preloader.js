@@ -33,6 +33,7 @@ export class Preloader extends Scene
           width: 6,
           height: 8,
           chars: chars,
+        //   lineSpacing: 2,
           charsPerRow: 32 //,
           //spacing: { x: 1, y: 1 }
         }
