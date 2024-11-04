@@ -1,1 +1,1 @@
-export default ['Game', 'GameOver', 'RayCastDDA'];
+export default ['Game', 'GameOver', 'RayCastDDA', "DLA algo"];
