@@ -1,0 +1,1080 @@
+// Poisson-Disc:
+const {log, clear, dir} = console
+clear()
+
+const {SpliceOne} = Phaser.Utils.Array;
+const {ceil, random, sqrt, cos, sin, max, min, SQRT1_2, PI} = Math
+const { PI2, Vector2, Vector3 } = Phaser.Math
+
+class poissonDiscSampler
+{
+    rnd = Phaser.Math.RND || new Phaser.Math.RandomDataGenerator();
+
+    rect = new Phaser.Geom.Rectangle();
+
+	tempVect = new Phaser.Math.Vector2();
+
+	otherTempVect = new Phaser.Math.Vector2();
+
+    height;
+    width;
+    radius2;
+    R;
+    cellSize;
+    gridWidth;
+    gridHeight;
+    grid;
+    queue;
+
+	MAXALLOWEDPOINTS;
+	k;
+	mapGrid;
+
+    constructor(areaWidth, areaHeight, radius, seed)
+    {
+        this.setup(areaWidth, areaHeight, radius, seed)
+    }
+
+    setup(areaWidth, areaHeight, radius, seed = "qh,mh")
+    {
+        this.rnd.sow(seed);
+        this.rect.setSize(areaWidth, areaHeight);
+
+        this.radius2 = radius * radius;
+        this.R = 3 * this.radius2;
+        this.cellSize = radius * Math.SQRT1_2;
+        this.gridWidth = ceil(areaWidth / this.cellSize);
+        this.gridHeight = ceil(areaWidth / this.cellSize);
+        this.grid = new Array(this.gridWidth * this.gridHeight);
+        this.queue = [];
+
+        this.MAXALLOWEDPOINTS = this.grid.length;
+        this.k = 30;
+        this.mapGrid = new Map();
+    }
+
+    random(max = 1)
+    {
+        return Math.floor(this.rnd.frac() * max);
+    }
+
+    generate()
+    {
+        let s;
+      
+        if (!this.queue.length)
+        {
+            s = this.sample(this.random(this.rect.width), this.random(this.rect.height));
+        };
+
+        for (let i = 0; i < this.MAXALLOWEDPOINTS; i++)
+        {
+            s = this.calcArea()
+
+            if (!s)
+            {
+                //console.timeEnd("calcArea")
+                break;
+            }
+        }
+
+        //console.log("Returning:", this.mapGrid.values());
+
+        return this.grid.flat().sort((a, b) => a.y === b.y? a.x-b.x:a.y-b.y);
+
+    } //end generate
+
+    calcArea()
+    {
+        //console.log("calcArea", this.queue.length);
+
+        // Pick a random existing sample and remove it from the queue.
+        while (this.queue.length)
+        {
+			const index = this.random(this.queue.length);
+            const s = this.queue[index];//SpliceOne(this.queue, index);
+         
+            // Make a new candidate between [radius, 2 * radius] from the existing sample.
+            for (let j = 0, k = this.k; j < k; ++j)
+            {
+                const {x, y} = this.tempVect.setToPolar(this.rnd.rotation(), Math.sqrt(this.random(this.R) + this.radius2)).add(s);
+
+                // Reject candidates that are outside the allowed extent,
+                // or closer than 2 * radius to any existing sample.
+                if (this.zeroContains(this.rect, x, y) && this.far(x, y))
+                {
+                  //this.queue.push(s);
+                  return this.sample(x, y)
+                }
+              
+            }
+          
+            // wrong sample: remove it!
+			SpliceOne(this.queue, index);
+
+            // debug
+            //let res = "ora:\n";
+            //this.queue.forEach((el, i) => res += `${i}) {${el.x}${el.y}${el.z}}\n`);
+
+            //log(this.queue.length, res);
+
+
+            //console.dir("LOOP", ...this.queue)
+        }
+
+    } //end calcArea
+
+    far(x, y)
+    {
+        let i = x / this.cellSize | 0;
+        let j = y / this.cellSize | 0;
+        let s;
+      
+        const i0 = max(i - 2, 0);
+        const j0 = max(j - 2, 0);
+        const i1 = min(i + 3, this.gridWidth);
+		const j1 = min(j + 3, this.gridHeight);
+
+        for (j = j0; j < j1; ++j)
+        {
+            const o = j * this.gridWidth;
+          
+            for (i = i0; i < i1; ++i)
+            {
+                if (s = this.grid[o + i])
+                {
+                    const dx = s.x - x;
+                  
+                    const dy = s.y - y;
+                  
+                    if (dx * dx + dy * dy < this.radius2) return false;
+                }
+            }
+        }
+
+        return true;
+    } //end far func
+
+    sample(x, y)
+    {
+        //gen sample
+        const s = new Vector2(x, y);//, this.sampleSize);
+
+        this.queue.push(s);
+      
+        this.grid[this.gridWidth * (y / this.cellSize | 0) + (x / this.cellSize | 0)] = s;
+
+        this.mapGrid.set(this.gridWidth * (y / this.cellSize | 0) + (x / this.cellSize | 0), s);
+
+        return s;
+    } //end sample func
+    
+    zeroContains(rect, x, y)
+    {
+        if (rect.width <= 0 || rect.height <= 0)
+        {
+            return false;
+        }
+
+        return (rect.x <= x && rect.x + rect.width > x && rect.y <= y && rect.y + rect.height > y);
+    }
+
+} //end poissonDiscSampler class
+
+var config = {
+  scale: {
+    width: 164,
+    height: 164,
+    zoom: 3
+  },
+    type: Phaser.AUTO,
+    parent: 'gameContainer',
+    scene: {
+        create: create
+    }
+};
+
+
+window.game = new Phaser.Game(config);
+
+function create ()
+{
+  const seed = "a";
+  const gag = new poissonDiscSampler(16, 16, 3, seed);
+  const res = gag.generate();
+  
+  // (a, b) => a.y === b.y? a.x-b.x:a.y-b.y)
+  //const {Floor} = Phaser.Geom.Point;
+  
+  res.forEach(el => {el.x = Math.floor(el.x); el.y=Math.floor(el.y)});
+  res.sort((a, b) => a.y === b.y? a.x-b.x:a.y-b.y);
+  
+  
+  console.dir(res, gag)
+  //log("Rnd:", poissonDiscSampler.rnd, Phaser.Math)
+
+  const offsetX = 2
+
+  const starSize = 1
+  
+  this.add.grid(offsetX, offsetX, gag.gridWidth * gag.cellSize,  gag.gridHeight * gag.cellSize, gag.cellSize, gag.cellSize, 0x666666).setAltFillStyle(0x333333).setOutlineStyle().setOrigin(0).setAlpha(0.8);
+  
+  const graphics = this.add.graphics({ fillStyle: { color: 0xffdd00 }, lineStyle:{ color:0x3478bd } });
+  
+  //graphics.strokeRect(1,1, gag.rect.width + offsetX + starSize, gag.rect.height + offsetX + starSize);     
+  
+  res.forEach( el => graphics.fillRect(el.x + offsetX, el.y + offsetX, starSize, starSize) );
+}
+
+// old CalcArea
+    calcArea()
+    {
+        console.log("calcArea", this.queue.length);
+
+        // Pick a random existing sample and remove it from the queue.
+        while (this.queue.length)
+        {
+
+            const s = SpliceOne(this.queue, this.random(this.queue.length));
+          
+            this.tempVect.setFromObject(s);
+
+
+            // Make a new candidate between [radius, 2 * radius] from the existing sample.
+            for (let j = 0, k = this.k; j < k; ++j)
+            {
+                //const a = this.random(PI2);
+                const a = this.rnd.rotation();
+              
+              
+                const r = sqrt(this.random(this.R) + this.radius2);
+              
+              this.otherTempVect.setTo(0, 0).setToPolar(a, r);//Math.sqrt(this.random(this.R) + this.radius2));
+                const x = s.x + r * cos(a);
+                const y = s.y + r * sin(a);
+console.log("otherTempVect", x-s.x, y-s.y,  this.otherTempVect);
+                // Reject candidates that are outside the allowed extent,
+                // or closer than 2 * radius to any existing sample.
+                if (this.zeroContains(this.rect, x, y) && this.far(x, y)) return this.sample(x, y);
+            }
+
+
+            // debug
+            let res = "ora:\n";
+            this.queue.forEach((el, i) => res += `${i}) {${el.x}${el.y}${el.z}}\n`);
+
+            log(this.queue.length, res);
+
+
+            //console.dir("LOOP", ...this.queue)
+        }
+
+    } //end calcArea
+
+
+
+//inzio casino
+const {log, clear, dir} = console
+clear()
+
+const {SpliceOne} = Phaser.Utils.Array;
+const {ceil, random, sqrt, cos, sin, max, min, SQRT1_2, PI} = Math
+const { PI2, Vector2, Vector3 } = Phaser.Math
+
+class poissonDiscSampler
+{
+    rnd = Phaser.Math.RND || new Phaser.Math.RandomDataGenerator();
+
+    rect = new Phaser.Geom.Rectangle();
+
+	tempVect = new Phaser.Math.Vector2();
+
+	otherTempVect = new Phaser.Math.Vector2();
+
+    height;
+    width;
+    radius2;
+    R;
+    cellSize;
+    gridWidth;
+    gridHeight;
+    grid;
+    queue;
+
+	MAXALLOWEDPOINTS;
+	k;
+	mapGrid;
+
+    constructor(areaWidth, areaHeight, radius, seed)
+    {
+        this.setup(areaWidth, areaHeight, radius, seed)
+    }
+
+    setup(areaWidth, areaHeight, radius, seed = "qh,mh")
+    {
+        this.rnd.sow(seed);
+        this.rect.setSize(areaWidth, areaHeight);
+
+        this.radius2 = radius * radius;
+        this.R = 3 * this.radius2;
+        this.cellSize = radius * Math.SQRT1_2;
+        this.gridWidth = ceil(areaWidth / this.cellSize);
+        this.gridHeight = ceil(areaWidth / this.cellSize);
+        this.grid = new Array(this.gridWidth * this.gridHeight);
+        this.queue = [];
+
+        this.MAXALLOWEDPOINTS = this.grid.length;
+        this.k = 30;
+        this.mapGrid = new Map();
+    }
+
+    random(max = 1)
+    {
+        return Math.floor(this.rnd.frac() * max);
+    }
+
+    generate()
+    {
+        let s;
+      
+        if (!this.queue.length)
+        {
+          //const gagx = this.random(this.rect.width);
+          //const gagy = this.random(this.rect.height);
+            s = this.sample(this.random(this.rect.width), this.random(this.rect.height), null);
+        };
+
+        for (let i = 0; i < this.MAXALLOWEDPOINTS; i++)
+        {
+            s = this.calcArea()
+
+            if (!s)
+            {
+                //console.timeEnd("calcArea")
+                break;
+            }
+        }
+
+        //console.log("Returning:", this.mapGrid.values());
+
+        return this.grid.flat().sort((a, b) => a.y === b.y? a.x-b.x:a.y-b.y);
+
+    } //end generate
+
+    calcArea()
+    {
+        //console.log("calcArea", this.queue.length);
+
+        // Pick a random existing sample and remove it from the queue.
+        while (this.queue.length)
+        {
+			const index = this.random(this.queue.length);
+            const s = this.queue[index];//SpliceOne(this.queue, index);
+         
+            // Make a new candidate between [radius, 2 * radius] from the existing sample.
+            for (let j = 0, k = this.k; j < k; ++j)
+            {
+                const {x, y} = this.tempVect.setToPolar(this.rnd.rotation(), Math.sqrt(this.random(this.R) + this.radius2)).add(s);
+
+                // Reject candidates that are outside the allowed extent,
+                // or closer than 2 * radius to any existing sample.
+                if (this.zeroContains(this.rect, x, y) && this.far(x, y))
+                {
+                  //this.queue.push(s);
+                  return this.sample(x, y, s)
+                }
+              
+            }
+          
+            // wrong sample: remove it!
+			SpliceOne(this.queue, index);
+
+            // debug
+            //let res = "ora:\n";
+            //this.queue.forEach((el, i) => res += `${i}) {${el.x}${el.y}${el.z}}\n`);
+
+            //log(this.queue.length, res);
+
+
+            //console.dir("LOOP", ...this.queue)
+        }
+
+    } //end calcArea
+
+    far(x, y)
+    {
+        let i = x / this.cellSize | 0;
+        let j = y / this.cellSize | 0;
+        let s;
+      
+        const i0 = max(i - 2, 0);
+        const j0 = max(j - 2, 0);
+        const i1 = min(i + 3, this.gridWidth);
+		const j1 = min(j + 3, this.gridHeight);
+
+        for (j = j0; j < j1; ++j)
+        {
+            const o = j * this.gridWidth;
+          
+            for (i = i0; i < i1; ++i)
+            {
+                if (s = this.grid[o + i])
+                {
+                    const dx = s.x - x;
+                  
+                    const dy = s.y - y;
+                  
+                    if (dx * dx + dy * dy < this.radius2) return false;
+                }
+            }
+        }
+
+        return true;
+    } //end far func
+
+    sample(x, y, z)// = {x:0, y:0})
+    {
+        //gen sample
+        const s = new Vector3(x, y, z);//, this.sampleSize);
+
+        this.queue.push(s);
+      
+        this.grid[this.gridWidth * (y / this.cellSize | 0) + (x / this.cellSize | 0)] = s;
+
+        this.mapGrid.set(this.gridWidth * (y / this.cellSize | 0) + (x / this.cellSize | 0), s);
+
+        return s;
+    } //end sample func
+    
+    zeroContains(rect, x, y)
+    {
+        if (rect.width <= 0 || rect.height <= 0)
+        {
+            return false;
+        }
+
+        return (rect.x <= x && rect.x + rect.width > x && rect.y <= y && rect.y + rect.height > y);
+    }
+
+} //end poissonDiscSampler class
+
+var config = {
+  scale: {
+    width: 164,
+    height: 164,
+    zoom: 3
+  },
+    type: Phaser.AUTO,
+    parent: 'gameContainer',
+    scene: {
+        create: create
+    }
+};
+
+
+window.game = new Phaser.Game(config);
+
+function create ()
+{
+  const seed = "abc";
+  const gag = new poissonDiscSampler(80, 80, 17, seed);
+  const res = gag.generate();
+  
+  // (a, b) => a.y === b.y? a.x-b.x:a.y-b.y)
+  //const {Floor} = Phaser.Geom.Point;
+  
+  res.forEach(el => {el.x = Math.floor(el.x); el.y=Math.floor(el.y)});
+  res.sort((a, b) => a.y === b.y? a.x-b.x:a.y-b.y);
+  
+  
+  console.dir(res, gag)
+  //log("Rnd:", poissonDiscSampler.rnd, Phaser.Math)
+
+  const offsetX = 2
+
+  const starSize = 3
+  
+  this.add.grid(offsetX, offsetX, gag.gridWidth * gag.cellSize,  gag.gridHeight * gag.cellSize, gag.cellSize, gag.cellSize, 0x666666).setAltFillStyle(0x333333).setOutlineStyle().setOrigin(0).setAlpha(0.8);
+  
+  const graphics = this.add.graphics({ fillStyle: { color: 0xffffff }, lineStyle:{ color:0xdadada , lineWidth:1, alpha:0.6} });
+  
+  for (const elem of res)//let i = 1; i < res.length; i++)
+  {
+    if (elem.z){
+    graphics.lineBetween(elem.x + offsetX, elem.y+ offsetX, elem.z.x+ offsetX, elem.z.y+ offsetX);
+    }
+  }
+  
+  //graphics.strokeRect(1,1, gag.rect.width + offsetX + starSize, gag.rect.height + offsetX + starSize);     
+  
+  res.forEach( el => graphics.fillRect(el.x + offsetX, el.y + offsetX, starSize, starSize) );
+}
+
+
+//////////////////
+//Sections:
+
+/*
+class MainScene extends Phaser.Scene
+{
+    baseSeed = "abc";
+    seed = "12090934";
+
+    rnd = Phaser.Math.RND; //.sow(this.seed);
+
+    //seededRand;
+
+    size = new Phaser.Math.Vector2(16, 16);
+
+    //oriColors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff, 0x00ffff, 0xaaaaaa, 0x222222, 0x333333, 0x444444, 0x555555, 0x666666, 0x777777, 0x888888];
+
+    portionAmount = 3;
+
+    colors = Phaser.Display.Color.ColorSpectrum(this.portionAmount);
+
+
+    alt = Phaser.Display.Color.HSVColorWheel();
+
+    maxColor = 12;
+
+    directions = [
+        Phaser.Math.Vector2.LEFT,
+        Phaser.Math.Vector2.UP,
+        Phaser.Math.Vector2.RIGHT,
+        Phaser.Math.Vector2.DOWN
+    ];
+
+
+    dynTex;
+
+    ultraGag;
+
+    polygon = new Phaser.Geom.Polygon("0 0 3 6 0 15 7 12 11 15 15 15 14 10 12 7 15 3 13 0 7 2");
+
+    
+
+    constructor()
+    {
+        
+        super({ key: "MainScene" });
+
+        this.rnd.sow(this.seed);
+
+        //console.log("SEEDED", this.rnd.frac())
+
+        this.grid = [];
+
+        //console.log("COLORS", this.alt);
+
+        //alt
+        //this.rnd.shuffle(this.alt);
+        //this.alt.length = this.maxColor;
+        //this.colors = this.alt;
+
+        //this.colors.forEach( (el, i, ary) => ary[i] = el.color);
+        //console.dir(this.colors);
+        //this.colors = this.oriColors;
+        this.colors.forEach((el, i, ary) => ary[i] = el.color)
+    }
+
+    setBaseSeed(string)
+    {
+        this.baseSeed = string;
+    }
+
+    seededRand(mult = 1)
+    {
+        return Math.floor(Phaser.Math.RND.frac() * mult);
+    }
+
+    init()
+    {
+        this.rnd = Phaser.Math.RND;
+    }
+
+    create()
+    {
+        this.dynTex = this.textures.addDynamicTexture('gridTexture', this.size.x, this.size.y);
+
+        this.dynTex.fill(0x776655, 0.3);
+
+        this.immy = this.add.image(2, 2, "gridTexture").setOrigin(0)//.setScale(9);
+
+
+        const testMapId = 2;
+
+        this.generatePartitionedMap(this.size, this.colors.length, testMapId);
+
+
+        for (const [color, zoneAry] of this.ultraGag.entries())
+        {
+
+            // let amount = 0;
+
+            for (const {x, y} of zoneAry)
+            {
+                // filter points in polygon?
+
+                if (this.polygon.contains(x, y))
+                {
+                    // amount++;
+
+                    this.dynTex.fill(this.colors[color], 1, x, y, 1, 1);
+                }
+
+
+            }
+
+           // console.log("Effective:", amount);
+        }
+
+    }
+
+    generatePartitionedMap(size_map, nb_subsections, mapId)
+    {
+            this.rnd.sow(this.baseSeed + mapId.toString());
+
+            const {grid} = this;
+
+            for (let i = 0; i < size_map.x; i++)
+            {
+                grid.push(new Array(size_map.y).fill(-1));
+            }
+
+            // Create a tracker for valid points by subsection for the diffusion process
+            const recorded_points = Array.from({ length: nb_subsections }, () => []);
+
+            this.ultraGag = recorded_points;
+
+            // Create a counter to keep track of the number of unallocated cells
+            let nb_free_cells = size_map.x * size_map.y;
+
+            // Set up the initial points for the process
+            const {seededRand} = this;
+        
+        for (let id_subsection = 0; id_subsection < nb_subsections; id_subsection++)
+        {
+            const point = new Phaser.Math.Vector2();
+            
+            while (true)
+            {
+                // Find a random point
+                point.setTo(seededRand(size_map.x), seededRand(size_map.y));
+
+                // Check if it's free, else find another point
+                //if (!this.polygon.contains(point.x, point.y) && grid[point.x][point.y] === -1) 
+                if (grid[point.x][point.y] === -1)
+                {
+                    // If it is, add it to tracking and grid then proceed to next subsection
+                    grid[point.x][point.y] = id_subsection;
+
+                    recorded_points[id_subsection].push(point.clone());
+
+                    nb_free_cells -= 1;
+
+                    break;
+                }
+            }
+        }
+
+        //recycled points
+        const new_point = new Phaser.Math.Vector2();
+
+        // Start filling the grid
+        while (nb_free_cells > 0)
+        {
+            for (let id_subsection = 0, subsectionAry; id_subsection < nb_subsections; id_subsection++)
+            {
+                subsectionAry = recorded_points[id_subsection];
+                
+                // Check if there are tracked points for this subsection
+                if (subsectionAry.length === 0)
+                {
+                    continue;
+                }
+
+                const dirIdx = this.seededRand(this.directions.length);
+                //console.log(dirIdx, "DIR_IDX");
+
+                new_point.setFromObject(subsectionAry[this.seededRand(subsectionAry.length)]).add(this.directions[dirIdx]);
+
+                // Check if the new point is in the grid
+                if (new_point.x < 0 || new_point.y < 0 || new_point.x >= size_map.x || new_point.y >= size_map.y) {
+                    continue;
+                }
+
+                // Check if the new point is already occupied
+                if (grid[new_point.x][new_point.y] !== -1) {
+                    continue;
+                }
+
+                // Record this new point in our tracker and set it in the grid
+                grid[new_point.x][new_point.y] = id_subsection;
+
+                subsectionAry.push(new_point.clone());
+
+                nb_free_cells -= 1;
+            }
+        }
+
+        return grid;
+    }
+
+    
+} // end Scene class
+*/
+
+// sec attempt
+class ProcUtils
+{
+    static rnd = Phaser.Math.RND ?? new Phaser.Math.RandomDataGenerator();
+
+    static baseSeed = "";
+
+    static area = new Phaser.Geom.Rectangle();
+
+    static fixedArea = new Phaser.Geom.Rectangle();
+
+    static seamlessArea = new Phaser.Geom.Rectangle(-1, -1, 1, 1);
+
+    static tempVect = new Phaser.Math.Vector2();
+
+    static directions = [
+        Phaser.Math.Vector2.LEFT,
+        Phaser.Math.Vector2.UP,
+        Phaser.Math.Vector2.RIGHT,
+        Phaser.Math.Vector2.DOWN
+    ];
+
+    static partitions = new Map();
+
+    static availablePixels = [];
+
+    static usedPixels = new Set();
+
+    static totalPixels = 0;
+
+
+    static seededInt(max = 1)
+    {
+        return Math.floor(this.rnd.frac() * max);
+    }
+
+    static coordsToInt({x, y} = this.tempVect, width = this.area.width)
+    {
+        return x + y * width;
+    }
+
+    static setBaseSeed(baseSeed)
+    {
+        this.baseSeed = "" + baseSeed;
+
+        return this;
+    }
+
+    static setSeed(seed)
+    {
+        this.rnd.sow(this.baseSeed + seed);
+
+        return this;
+    }
+
+    static areaContains({x, y}, rect = this.area)
+    {
+        //console.log(x, y, rect);
+
+        return x < rect.x || y < rect.y || x >= rect.width || y >= rect.height;
+    }
+
+    static setAreaSize(width, height)
+    {
+        //this.seamlessArea.setSize(width, height);
+
+        this.area.setSize(width, height);
+
+        this.fixedArea.setSize(width - 1, height - 1);
+
+        return this;
+    }
+
+    static generate(id, partitionAmount, width = 16, height = 16)
+    {
+        this.initialize(id, partitionAmount, width, height);
+    }
+
+    static descYdescX(a, b)
+    {
+        return a.y === b.y? a.x - b.x : a.y - b.y;
+    }
+
+    ///better?
+    static zeroContains(rect, x, y)
+    {
+        if (rect.width <= 0 || rect.height <= 0)
+        {
+            return false;
+        }
+
+        return (rect.x <= x && rect.x + rect.width > x && rect.y <= y && rect.y + rect.height > y);
+    }
+
+
+    static initialize(id, partitionAmount, width, height)
+    {
+        this.setSeed(id);
+
+        this.setAreaSize(width, height);
+
+        this.totalPixels = width * height;
+
+        this.availablePixels = this.rnd.shuffle(Phaser.Utils.Array.NumberArray(0, this.totalPixels - 1));
+
+        this.partitions.clear();
+
+        let ary;
+
+        //console.log("this.availablePixels", this.availablePixels.length);
+        //const forced = [1, 6 + 16, 12 +16, 6+16*14, 12 + 16*14, 18 + 14 * 16]
+
+        for (let color = 0; color < partitionAmount; color++)
+        {
+            ary = [];
+
+            const pixelId = /*forced[color];*/ this.seededInt(this.availablePixels.length);
+            
+            const cellAsInt = this.availablePixels[pixelId];
+
+            // set this.tempVect:
+            Phaser.Math.ToXY(cellAsInt, width, height, this.tempVect);
+
+            // console.log("BEFORE:", this.availablePixels.indexOf(cellAsInt) === -1, cellAsInt);
+
+            ary.push(/*cellAsInt*/ this.tempVect.clone());
+
+            this.partitions.set(color, ary);
+
+            Phaser.Utils.Array.SpliceOne(this.availablePixels, pixelId);
+
+            // console.log("AFTER:", this.availablePixels.indexOf(cellAsInt) === -1, cellAsInt);
+        }
+
+        console.log("this.availablePixels - partitionAmount", this.availablePixels.length, partitionAmount);
+
+        return this.build(); //this.partitions;
+    }
+
+    static build()
+    {
+        console.log("%c -  this.build  - ", "background-color:#875");
+        const {width, height} = this.area;
+
+
+        //control while sec
+        //let debu = 3950;
+
+        const grid = new Set(this.availablePixels);
+/*
+        console.log([...grid].sort((a, b) => a - b));
+
+        for (const ary of this.partitions.values())
+        {
+            console.log("starting coords:", ary[0], this.coordsToInt(ary[0]));
+        }*/
+
+        //return null
+
+        while (grid.size) // && --debu)
+        {
+
+            const {tempVect, directions} = this;
+
+            //console.log("Debu:", debu, grid.size);
+            //let pixelId = this.seededInt(this.availablePixels.length -1);
+                
+            //const cellAsInt = this.availablePixels[pixelId];
+
+            //Phaser.Math.ToXY(cellAsInt, width, height, this.tempVect);
+
+            //console.log(Phaser.Utils.Array.SpliceOne(this.availablePixels, pixelId), this.tempVect);
+
+            
+
+            for (const partitionCoords of this.partitions.values())
+            {
+                tempVect.setFromObject(partitionCoords[this.seededInt(partitionCoords.length )]).add(directions[this.seededInt(directions.length )]);
+
+                //if (!this.fixedArea.contains(tempVect.x, tempVect.y))
+                if (!this.zeroContains(this.area, tempVect.x, tempVect.y))
+                {
+                    //console.log("Skipping:", tempVect);
+                    continue;
+                }
+
+                const candidateCell = this.coordsToInt(tempVect, width);
+            
+
+                if (grid.has(candidateCell))
+                {
+                    partitionCoords.push(tempVect.clone());
+
+                    grid.delete(candidateCell);
+
+                    console.log("SEAMLESS!");
+
+                    if (tempVect.x === 0 || tempVect.x === this.fixedArea.width)
+                    {
+                        let mirrorX = this.fixedArea.width - tempVect.x;
+
+                        //const vec = new Phaser.Math.Vector2(mirrorX, this.tempVect.y);
+
+                        const vec = tempVect.clone();
+
+                        vec.x = mirrorX;
+
+                        console.log("Seam X:", tempVect.x, mirrorX);
+
+                        const otherCandidate = this.coordsToInt(vec);
+
+                        if (grid.has(otherCandidate))
+                        {
+                            partitionCoords.push(vec);
+
+                            grid.delete(otherCandidate);
+                        }
+                    }
+                    // console.log(`width: ${this.area.width}, ${this.fixedArea.width}, height: ${this.area.height}, ${this.fixedArea.height}`)
+                    if (tempVect.y === 0 || tempVect.y === this.fixedArea.height)
+                    {
+                        let mirrorY = this.fixedArea.height - tempVect.y;
+
+                        const vec = tempVect.clone();
+                        
+                        vec.y = mirrorY;
+
+                        console.log("SeamY:", tempVect.y);
+
+                        const otherCandidate = this.coordsToInt(vec);
+
+                        if (grid.has(otherCandidate))
+                        {
+                            partitionCoords.push(vec);
+
+                            grid.delete(otherCandidate);
+                        }
+                    }
+                    
+
+                }
+
+            }
+        }
+
+        console.log("GRID:", grid)
+    }
+}
+
+class ProcGenTest extends Phaser.Scene
+{
+    procUtils = ProcUtils;
+
+    constructor()
+    {     
+        super({ key: "ProcGenTest" });
+    }
+
+    create()
+    {
+
+        //const dynTex = this.textures.addDynamicTexture("mapTexture", 16, 16);
+
+        //dynTex.fill(0x3478bd);
+
+        //this.add.image(3, 2, 'mapTexture').setOrigin(0);
+
+        const colors = [0xff0000, 0xffff00, 0x3355ff, 0x00ffff, 0x444444, 0x999999, 0xff00ff, 0xaabbdd];
+
+        this.procUtils.setBaseSeed('mosconiG');
+
+        //this.procUtils.setAreaSize(23, 13)
+
+        // wrong :(
+        // ??
+        // this.procUtils.generate(3, 13, 3, 3);
+        // this.procUtils.generate(3, 3, 3, 3);
+        // ??
+        
+        this.procUtils.generate(/*7*/ 1, colors.length-2, 17, 17);
+
+        const {partitions} = this.procUtils;
+
+        console.dir("Final partitons", partitions, partitions.size, this.procUtils.area);
+
+        // draw:
+        //dynTex.setSize(this.procUtils.area.width, this.procUtils.area.height);
+
+        const graphics = this.add.graphics();
+
+        graphics.setPosition(3, 3)
+        
+        const debuDrawnCoords = [];
+
+        for (const [color, ary] of partitions)
+        {
+            // console.log(color, ary);
+
+            // ary.sort((a, b) => a.y === b.y? a.x - b.x: a.y - b.y);
+
+            for (const elem of ary)
+            {
+                //console.log(color, elem);
+                debuDrawnCoords.push(elem);
+
+                //dynTex.fill(colors[color], 1, elem.x, elem.y, 1, 1);
+                graphics.fillStyle(colors[color]);
+
+                if (elem.x === this.procUtils.fixedArea.width || elem.y === this.procUtils.fixedArea.height) {continue}
+
+                graphics.fillRect(elem.x, elem.y, 1, 1);
+            }
+        }
+
+        // 
+            //const debuAry = [];
+
+            const debuSet = new Set();
+
+            console.log("%c             LAST  Check             ", "background-color: #567890");
+
+            for (const part of this.procUtils.partitions.values())
+            {
+                // console.log(part);
+
+                //debuAry.push(...part);
+                part.forEach(a => debuSet.add(this.procUtils.coordsToInt(a, this.procUtils.area.width))); //console.log("QW", this.procUtils.coordsToInt(a, this.procUtils.area.width)))
+            }
+            const {width, height} = this.procUtils.area;
+
+            //console.dir(debuAry, width * height, debuAry.length, this.procUtils);
+
+            //console.log([...debuSet].sort((a, b) => a-b))
+            console.log(debuDrawnCoords.sort(this.procUtils.descYdescX));
+    }
+}
+
+
+
+const game = new Phaser.Game({
+    pixelArt: true,
+    type: Phaser.AUTO,
+    //width: 64,
+    //height: 64,
+    backgroundColor: '#111111',
+    scale: {
+        mode: Phaser.Scale.NONE,
+        //autoCenter: Phaser.Scale.CENTER_BOTH,
+        width: 32,
+        height: 32,
+        zoom: 12
+    },
+    scene: [ProcGenTest/*, MainScene */]
+})

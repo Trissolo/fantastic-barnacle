@@ -1,10 +1,32 @@
 import Phaser from "phaser";
 
+import ProceduralGenerationHelper from "./ProceduralGeneration/ProceduralGenerationHelper.mjs";
+
 import CommonSceneNames from './CommonSceneNames.js';
+
 
 //  Diffusion Aggregation algorithm, also known as Diffusion-Limited Aggregation (or DLA) algorithm
 export class DiffusionAggregation extends Phaser.Scene
 {
+    // seed = "1234";
+
+    // rnd = Phaser.Math.RND;
+
+    // seededRandom = max => Phaser.Math.RND.frac() * max;
+
+    // dynTex;
+
+    // grid = [];
+
+    // colors = [0xff0000, 0x00ff00, 0x0000ff, 0xff00ff, 0xffff00, 0x0000ff];
+
+    // tempVec = new Phaser.Math.Vector3();
+
+    // directions = [Phaser.Math.Vector2.LEFT, Phaser.Math.Vector2.UP, Phaser.Math.Vector2.RIGHT, Phaser.Math.Vector2.DOWN];
+
+
+
+
     constructor()
     {
         super({
@@ -29,7 +51,15 @@ export class DiffusionAggregation extends Phaser.Scene
     }
     init()
     {
+        ProceduralGenerationHelper.rnd = Phaser.Math.RND;
         console.log(this.sys.settings.key);
+
+        console.log(ProceduralGenerationHelper.setBaseSeed(Math.random()));
+
+        console.log("BS:", ProceduralGenerationHelper.baseSeed);
+
+        console.log("RND:", ProceduralGenerationHelper.random(96));
+
     }
 
     create()
@@ -37,7 +67,45 @@ export class DiffusionAggregation extends Phaser.Scene
 
     }
 
-}
+    setupTexture(width, height, seed = this.seed)
+    {
+
+        // this.dynTex = this.textures.addDynamicTexture('gridTexture', width, height);
+
+        // this.dynTex.fill(0x776655, 0.8);
+
+        // this.immy = this.add.image(0, 0, "gridTexture").setOrigin(0).setScale(19);
+
+
+        // this.rnd.sow(seed);
+
+    }
+
+    // generatePartitionedMap(width, height, partitionsAmount = this.colors.length, grid = this.grid)
+    // {
+    //     for (let i = 0; i < width; i++)
+    //     {
+    //         grid.push(new Array(height).fill(-1));
+    //     }
+
+    //     const visited = new Set();
+
+    //     const partitions = new Map();
+
+    //     for (let i = 0; i < partitionsAmount; i++)
+    //     {
+    //         partitions.add(i, new Set());
+    //     }
+
+    //     const {seededRandom} = this;
+    // }
+
+    setFirstPoint(partitions, width, height, iterable)
+    {
+        
+    }
+
+} // end Scene class
 
 /*
 class MainScene extends Phaser.Scene
