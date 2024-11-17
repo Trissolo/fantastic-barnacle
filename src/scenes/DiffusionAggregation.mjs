@@ -51,14 +51,16 @@ export class DiffusionAggregation extends Phaser.Scene
     }
     init()
     {
+        // first of all, set the random generator!
         ProceduralGenerationHelper.rnd = Phaser.Math.RND;
+        
         console.log(this.sys.settings.key);
 
-        console.log(ProceduralGenerationHelper.setBaseSeed(Math.random()));
+        console.log(ProceduralGenerationHelper.setBaseSeed("PD!"));//Math.random()));
 
-        console.log("BS:", ProceduralGenerationHelper.baseSeed);
+        console.log("BS:", ProceduralGenerationHelper.rnd.sow(ProceduralGenerationHelper.baseSeed + 1));
 
-        console.log("RND:", ProceduralGenerationHelper.random(96));
+        console.log("PoissonDisc:", ProceduralGenerationHelper.poissonDiscSampler(16, 16, 7));
 
     }
 
