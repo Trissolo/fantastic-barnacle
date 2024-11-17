@@ -31,7 +31,7 @@ export default class ProceduralGenerationHelper
 
 // https://observablehq.com/@techsparx/an-improvement-on-bridsons-algorithm-for-poisson-disc-samp/2
 
-    static k = 4; // maximum number of samples before rejection
+    static k = 10; // maximum number of samples before rejection
     static radius2 = 0;
     static cellSize = 0;
     static gridWidth = 0;

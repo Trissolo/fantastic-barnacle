@@ -62,6 +62,10 @@ export class DiffusionAggregation extends Phaser.Scene
 
         console.log("PoissonDisc:", ProceduralGenerationHelper.poissonDiscSampler(16, 16, 7));
 
+        const testPoissinDisc = ProceduralGenerationHelper.poissonDiscSampler(36, 36, 7);
+
+        testPoissinDisc.forEach((val, _, iter) => this.add.rectangle(val.x, val.y, 2, 2, 0x9a9a65, 1).setOrigin(0));
+
     }
 
     create()
