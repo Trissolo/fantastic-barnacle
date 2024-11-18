@@ -8,6 +8,9 @@ import CommonSceneNames from './CommonSceneNames.js';
 //  Diffusion Aggregation algorithm, also known as Diffusion-Limited Aggregation (or DLA) algorithm
 export class DiffusionAggregation extends Phaser.Scene
 {
+    colorWheel = Phaser.Display.Color.HSVColorWheel();
+
+    colors = [];
     // seed = "1234";
 
     // rnd = Phaser.Math.RND;
@@ -56,21 +59,47 @@ export class DiffusionAggregation extends Phaser.Scene
         
         console.log(this.sys.settings.key);
 
-        console.log(ProceduralGenerationHelper.setBaseSeed("PD!"));//Math.random()));
+        console.log(ProceduralGenerationHelper.setBaseSeed(Math.random()));//Math.random()));
 
         console.log("BS:", ProceduralGenerationHelper.rnd.sow(ProceduralGenerationHelper.baseSeed + 1));
 
         console.log("PoissonDisc:", ProceduralGenerationHelper.poissonDiscSampler(16, 16, 7));
 
-        const testPoissinDisc = ProceduralGenerationHelper.poissonDiscSampler(36, 36, 7);
+        const testPoissinDisc = ProceduralGenerationHelper.poissonDiscSampler(16, 16, 3);
 
-        testPoissinDisc.forEach((val, _, iter) => this.add.rectangle(val.x, val.y, 2, 2, 0x9a9a65, 1).setOrigin(0));
+        this.chooseColors(30);
+
+        let colIdx = 0;
+
+        testPoissinDisc.forEach((val, _, iter) => this.add.rectangle(val.x, val.y, 1, 1, this.colors[colIdx++], 1).setOrigin(0));
 
     }
 
     create()
     {
+        //this.input.once(Phaser.Input.Keyboard.Events.KEY_DOWN + Phaser.Input.Keyboard.KeyCodes.ESC, () => console.log("ESC", this.scene.launch('MainMenu')));
+        this.input.keyboard.once(Phaser.Input.Keyboard.Events.KEY_DOWN + "ESC", this.pressedKey, this);
+    }
 
+    pressedKey()
+    {
+        console.log("PRESS");
+        this.scene.start('MainMenu');
+    }
+
+    chooseColors(amount = 7)
+    {
+        const cols = new Set();
+
+        while(cols.size <= amount)
+        {
+            cols.add(this.colorWheel[Phaser.Math.Between(0, 259)].color);
+        }
+
+        this.colors.length = 0;
+        this.colors.push(...cols);
+        console.log("Colors:", this.colors);
+        return this.colors;
     }
 
     setupTexture(width, height, seed = this.seed)

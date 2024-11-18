@@ -18,7 +18,7 @@ export default class ProceduralGenerationHelper
     {
         this.baseSeed = `${baseSeed}`;
 
-        console.log(this.rnd);
+        return this;
     }
 
     static random(max = 1)
@@ -115,17 +115,31 @@ export default class ProceduralGenerationHelper
 
             for (let i = i0; i < i1; ++i)
             {
+                if (this.result.has(horComp + i) && this
+                .tempVec
+                .setFromObject(this.result.get(horComp + i))
+                .subtract({x, y})
+                .dot(this.tempVec) < this.radius2)
+                {
+                    return false;
+                }
+
+                /* // old code:
                 if (this.result.has(horComp + i))
                 {
                     const s = this.result.get(horComp + i);
                     const dx = s.x - x;
                     const dy = s.y - y;
 
+                    this.tempVec.setFromObject(s).subtract({x, y});
+
+                    console.log("DEBU far()", this.tempVec.dot(this.tempVec), dx * dx + dy * dy); //.subtract({x,y}), dx, dy);
+
                     if (dx * dx + dy * dy < this.radius2)
                     {
                         return false;
                     }
-                }
+                }*/
             }
         }
         return true;
@@ -137,7 +151,7 @@ export default class ProceduralGenerationHelper
         
         this.queue.push(samp);
         
-        this.result.set(this.gridWidth * (y / this.cellSize | 0) + (x / this.cellSize | 0), samp);
+        this.result.set(this.gridWidth * Math.floor(y / this.cellSize) + Math.floor(x / this.cellSize), samp);
         
         return samp;
     }
