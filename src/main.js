@@ -5,6 +5,7 @@ import { MainMenu } from './scenes/MainMenu';
 import { Preloader } from './scenes/Preloader';
 import { RayCastDDA } from './scenes/RayCastDDA.mjs';
 import { DiffusionAggregation } from './scenes/DiffusionAggregation.mjs';
+import { PmStroll } from './scenes/PmStroll_broken.mjs';
 
 //  Find out more information about the Game Config at:
 //  https://newdocs.phaser.io/docs/3.70.0/Phaser.Types.Core.GameConfig
@@ -41,7 +42,8 @@ const config = {
         Game,
         GameOver,
         RayCastDDA,
-        DiffusionAggregation
+        DiffusionAggregation,
+        PmStroll
     ]
 };
 
