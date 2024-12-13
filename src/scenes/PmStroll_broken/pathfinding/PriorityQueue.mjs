@@ -1,4 +1,4 @@
-class PriorityQueue
+export default class PriorityQueue
 {
     // Es6 Map with key: node, and value: number.
     // distancesMap;

@@ -1,4 +1,9 @@
-class Dijkstra
+import GraphManager from "../GraphManager.mjs";
+
+import PriorityQueue from "./PriorityQueue.mjs";
+
+
+export default class Dijkstra
 {
     // start;
     // target;

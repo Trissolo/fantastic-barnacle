@@ -1,4 +1,8 @@
-class Astar
+import GraphManager from "../GraphManager.mjs";
+
+import PriorityQueue from "./PriorityQueue.mjs";
+
+export default class AStar
 {
     // start;
     // target;

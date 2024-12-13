@@ -1,30 +1,51 @@
+import Phaser from "phaser";
+
+import PMDebug from "./pmdebug/PMDebug.mjs";
+
+import Dijkstra from "./pathfinding/Dijkstra.mjs";
+
+import AStar from "./pathfinding/AStar.mjs";
+
+const {BetweenPoints: heuristic} = Phaser.Math.Distance;
+
+const {GetMidPoint} = Phaser.Geom.Line;
+
+const {LineToLine} = Phaser.Geom.Intersects;
+
+function vector2LikeFromObject(obj)
+{
+    return {x: obj.x, y: obj.y};
+}
+
+
 import AnyAgainstAllOthers from "./generators/AnyAgainstAllOthers.mjs";
 
 import EachPolygonSide from "./generators/EachPolygonSide.mjs";
 
 import EachVectorAndAdjacents from "./generators/EachVectorAndAdjacents.mjs";
 
+
 import VisibilityMap from "./VisibilityMap.mjs";
 
 import GraphManager from "./GraphManager.mjs";
 
 
-class PMStroll
+export default class PMStroll
 {
     // optional
     // debug;
 
-    // // defaults:
-    // epsilon = 0.03;
+    // defaults:
+    epsilon = 0.03;
 
-    // splitAmount = 5;
+    splitAmount = 5;
 
-    // // for recycle:
-    // vertexA = new Phaser.Math.Vector2();
+    // for recycle:
+    vertexA = new Phaser.Math.Vector2();
 
-    // vertexB = new Phaser.Math.Vector2();
+    vertexB = new Phaser.Math.Vector2();
 
-    // out = new Phaser.Math.Vector2();
+    out = new Phaser.Math.Vector2();
 
 
     constructor(scene)
@@ -33,28 +54,28 @@ class PMStroll
         if (scene)
         {
             this.debug = new PMDebug(scene);
-
         }
-        this.debug;
 
-        // defaults:
-        this.epsilon = 0.03;
+        // this.debug;
+
+        // // defaults:
+        // this.epsilon = 0.03;
     
-        this.splitAmount = 5;
+        // this.splitAmount = 5;
     
-        // for recycle:
-        this.vertexA = new Phaser.Math.Vector2();
+        // // for recycle:
+        // this.vertexA = new Phaser.Math.Vector2();
     
-        this.vertexB = new Phaser.Math.Vector2();
+        // this.vertexB = new Phaser.Math.Vector2();
     
-        this.out = new Phaser.Math.Vector2();
+        // this.out = new Phaser.Math.Vector2();
 
     }
 
-    // yest simple add
-    addVisibilityMap(aryOfNumberArys)
+    // test simple add
+    addVisibilityMap(aryOfPhaserPolygonParams)
     {
-        const pm = new VisibilityMap(aryOfNumberArys);
+        const pm = new VisibilityMap(aryOfPhaserPolygonParams);
 
         this.grabConcave(pm);
 
@@ -69,7 +90,7 @@ class PMStroll
 
         console.dir("PM", pm);
 
-        return pm
+        return pm;
     }
 
     grabConcave(polygonalMap)
@@ -90,9 +111,9 @@ class PMStroll
                 vertexB.copy(curr).subtract(prec);
 
                 
-                if( (vertexB.cross(vertexA) < 0) === isFirstPoly)
+                if( (vertexB.cross(vertexA) < 0) === isFirstPoly )
                 {
-                    GraphManager.addNode(curr, polygonalMap.graph)
+                    GraphManager.addNode(curr, polygonalMap.graph);
                 }
             
             }
@@ -129,7 +150,7 @@ class PMStroll
         {
             if (this.quickInLineOfSight(concaveA, concaveB, polygonalMap))
             {
-                GraphManager.addEdge(concaveA, concaveB, heuristic(concaveA, concaveB), graph)
+                GraphManager.addEdge(concaveA, concaveB, heuristic(concaveA, concaveB), graph);
             }
         }
     }
@@ -144,7 +165,7 @@ class PMStroll
         const polygonSide = new Phaser.Geom.Line();
 
         // temp Vector2
-        const tempVec2 = new Phaser.Math.Vector2()
+        const tempVec2 = new Phaser.Math.Vector2();
 
         for (const {points} of polygonalMap.polygons)
         {
@@ -154,7 +175,7 @@ class PMStroll
 
                 if (LineToLine(ray, polygonSide, this.out) && !this.itsNear(start, end, sidePointA, sidePointB, tempVec2))
                 {
-                    return false
+                    return false;
                 }
             }
         }
@@ -171,7 +192,7 @@ class PMStroll
             // if (rayPoints.some((point, idx, ary) => poly.contains(point.x, point.y) === firstagain))
             if (rayPoints.some(this.isContained, poly) === firstagain)
             {
-                return false
+                return false;
             }
 
             firstagain = true;
@@ -261,7 +282,7 @@ class PMStroll
 
         const clonedGraph = this.prepareGraph(start, end, polygonalMap);
 
-        return new Astar(start, end, clonedGraph, heuristic).search();
+        return new AStar(start, end, clonedGraph, heuristic).search();
 
     } // end pathAStar
 
