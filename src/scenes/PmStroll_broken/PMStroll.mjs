@@ -50,57 +50,38 @@ export default class PMStroll
 
     constructor(scene)
     {
-        console.log(scene)
+        // console.log(scene);
+
         if (scene)
         {
             this.debug = new PMDebug(scene);
         }
-
-        // this.debug;
-
-        // // defaults:
-        // this.epsilon = 0.03;
-    
-        // this.splitAmount = 5;
-    
-        // // for recycle:
-        // this.vertexA = new Phaser.Math.Vector2();
-    
-        // this.vertexB = new Phaser.Math.Vector2();
-    
-        // this.out = new Phaser.Math.Vector2();
-
     }
 
     // test simple add
     addVisibilityMap(aryOfPhaserPolygonParams)
     {
-        const pm = new VisibilityMap(aryOfPhaserPolygonParams);
+        const visMap = new VisibilityMap(aryOfPhaserPolygonParams);
 
-        this.grabConcave(pm);
+        this.grabConcave(visMap)
+            .checkAdjacent(visMap)
+            .connectNodes(visMap);
 
-        this.checkAdjacent(pm);
+        // this.visibilityMaps.set(name, visMap);
 
-        this.connectNodes(pm);
+        console.dir("new VisibilityMap", visMap);
 
-
-        // this.polygonalMaps.set(name, pm);
-
-        // this.drawPolyMap(pm);
-
-        console.dir("PM", pm);
-
-        return pm;
+        return visMap;
     }
 
-    grabConcave(polygonalMap)
+    grabConcave(visibilityMap)
     {
         const {vertexA, vertexB} = this;
         
         let isFirstPoly = true;
         
         //iterate allwalkable poly
-        for (const {points} of polygonalMap.polygons)
+        for (const {points} of visibilityMap.polygons)
         {
             //iterate all vertices in each poly
             for(const [curr, succ, prec] of EachVectorAndAdjacents(points))
@@ -113,7 +94,7 @@ export default class PMStroll
                 
                 if( (vertexB.cross(vertexA) < 0) === isFirstPoly )
                 {
-                    GraphManager.addNode(curr, polygonalMap.graph);
+                    GraphManager.addNode(curr, visibilityMap.graph);
                 }
             
             }
@@ -122,15 +103,17 @@ export default class PMStroll
             isFirstPoly = false;
         
         }
+
+        return this;
         
     } // end grabConcave
 
 
-    checkAdjacent(polygonalMap)
+    checkAdjacent(visibilityMap)
     {
-        const {graph} = polygonalMap;
+        const {graph} = visibilityMap;
 
-        for (const polygon of polygonalMap.polygons)
+        for (const polygon of visibilityMap.polygons)
         {
 
             // EachPolygonSide
@@ -142,38 +125,40 @@ export default class PMStroll
                 }
             }
         }
+
+        return this;
+
     } // end checkAdjacent
 
-    connectNodes(polygonalMap, graph = polygonalMap.graph)
+    connectNodes(visibilityMap, graph = visibilityMap.graph)
     {
         for (const [concaveA, concaveB] of AnyAgainstAllOthers([...graph.keys()]))
         {
-            if (this.quickInLineOfSight(concaveA, concaveB, polygonalMap))
+            if (this.quickInLineOfSight(concaveA, concaveB, visibilityMap))
             {
                 GraphManager.addEdge(concaveA, concaveB, heuristic(concaveA, concaveB), graph);
             }
         }
     }
 
-    quickInLineOfSight(start, end, polygonalMap)
+    quickInLineOfSight(start, end, visibilityMap)
     {
         //the segment to check against any polygon side
-        const ray = new Phaser.Geom.Line()
-        .setFromObjects(start, end);
+        const ray = new Phaser.Geom.Line().setFromObjects(start, end);
 
         //One side of current polygon
         const polygonSide = new Phaser.Geom.Line();
 
-        // temp Vector2
-        const tempVec2 = new Phaser.Math.Vector2();
+        // recycled Vector2
+        const tempVec = new Phaser.Math.Vector2();
 
-        for (const {points} of polygonalMap.polygons)
+        for (const {points} of visibilityMap.polygons)
         {
             for (const [sidePointA, sidePointB] of EachPolygonSide(points))
             {
                 polygonSide.setFromObjects(sidePointA, sidePointB);
 
-                if (LineToLine(ray, polygonSide, this.out) && !this.itsNear(start, end, sidePointA, sidePointB, tempVec2))
+                if (LineToLine(ray, polygonSide, this.out) && !this.itsNear(start, end, sidePointA, sidePointB, tempVec))
                 {
                     return false;
                 }
@@ -187,9 +172,8 @@ export default class PMStroll
 
         let firstagain = false;
 
-        for (const poly of polygonalMap.polygons)
+        for (const poly of visibilityMap.polygons)
         {
-            // if (rayPoints.some((point, idx, ary) => poly.contains(point.x, point.y) === firstagain))
             if (rayPoints.some(this.isContained, poly) === firstagain)
             {
                 return false;
@@ -198,7 +182,7 @@ export default class PMStroll
             firstagain = true;
         }
 
-        return true
+        return true;
 
     } // end quickInLineOfSight
 
@@ -207,80 +191,74 @@ export default class PMStroll
         return (recycledVec.setFromObject(rayA).fuzzyEquals(sideA, this.epsilon) || recycledVec.setFromObject(rayB).fuzzyEquals(sideB, this.epsilon)) || (recycledVec.setFromObject(rayB).fuzzyEquals(sideA, this.epsilon) || recycledVec.setFromObject(rayA).fuzzyEquals(sideB, this.epsilon));
     }
 
-    isContained(point, idx, ary)
+    isContained(point) //, idx, ary)
     {
-        // if (rayPoints.some((point, idx, ary) => poly.contains(point.x, point.y) === firstagain))
-        //console.log(`Poly (${this.points.length}) contains {x: ${point.x}, y: ${point.y}}`, this.contains(point.x, point.y));
-
         return this.contains(point.x, point.y);
     }
 
-    addExtraNodeToClonedGraph(extraNode, clonedGraph, graphKeys, originalPolygonalMap)
-    {
-        GraphManager.addNode(extraNode, clonedGraph);
+    // addExtraNodeToClonedGraph(extraNode, clonedGraph, graphKeys, originalvisibilityMap)
+    // {
+    //     GraphManager.addNode(extraNode, clonedGraph);
 
-        for (const node of graphKeys) //  for (let i = 0; i < limit; i++)
-        {
-            // const node = graphKeys[i];
+    //     for (const node of graphKeys) //  for (let i = 0; i < limit; i++)
+    //     {
+    //         // const node = graphKeys[i];
 
-            if (this.quickInLineOfSight(extraNode, node, originalPolygonalMap))
-            {
-                GraphManager.addEdge(extraNode, node, heuristic(extraNode, node), clonedGraph);
-            }
-        }
+    //         if (this.quickInLineOfSight(extraNode, node, originalvisibilityMap))
+    //         {
+    //             GraphManager.addEdge(extraNode, node, heuristic(extraNode, node), clonedGraph);
+    //         }
+    //     }
 
-        //just in case...
-        return clonedGraph;
-    }
+    //     //just in case...
+    //     return clonedGraph;
+    // }
 
-    prepareGraph(start, end, polygonalMap)
+    prepareGraph(start, end, visibilityMap)
     {
         // 1) Clone the Graph:
-        const clonedGraph = GraphManager.cloneGraph(polygonalMap.graph);
-
-        // console.log("Current clonedGraph size", clonedGraph.size)
+        const clonedGraph = GraphManager.cloneGraph(visibilityMap.graph);
 
         // 2) Extract the Keys (extract the keys, which are used to create the edges of the new node):
         const graphKeys = [...clonedGraph.keys()];
 
-        // 3) the highest node index - when creating edges you don't need to go further
-        //let {length} = graphKeys;
+        for (const newVertex of [start, end])
+        {
+            GraphManager.addNode(newVertex, clonedGraph);
 
-        // 4) Add and connect the new Node
-        this.addExtraNodeToClonedGraph(start, clonedGraph, graphKeys, polygonalMap);
+            for (const existingVertex of graphKeys)
+            {
+    
+                if (this.quickInLineOfSight(newVertex, existingVertex, visibilityMap))
+                {
+                    GraphManager.addEdge(newVertex, existingVertex, heuristic(newVertex, existingVertex), clonedGraph);
+                }
+            }
 
-        // 5) Before add the second new node update the Keys and 'length'
-        graphKeys.push(start);
+            // From now, the 'newVertex' belongs in the graph, so add it to
+            graphKeys.push(newVertex);
+        }
 
-        //6) 'length'
-        //length += 1;
-
-        // 7) Add the 'end' node
-        this.addExtraNodeToClonedGraph(end, clonedGraph, graphKeys, polygonalMap);
-
-        // this.debug.showGraph(clonedGraph);
-
-        //done!
-        return clonedGraph
+        return clonedGraph;
     }
 
-    pathDijkstra(start, end, polygonalMap)
+    pathDijkstra(start, end, visibilityMap)
     {
         start = vector2LikeFromObject(start);
         end = vector2LikeFromObject(end);
 
-        const clonedGraph = this.prepareGraph(start, end, polygonalMap);
+        const clonedGraph = this.prepareGraph(start, end, visibilityMap);
 
         return new Dijkstra(start, end, clonedGraph).search();
 
     }  // end pathDijkstra
 
-    pathAStar(start, end, polygonalMap)
+    pathAStar(start, end, visibilityMap)
     {
         start = vector2LikeFromObject(start);
         end = vector2LikeFromObject(end);
 
-        const clonedGraph = this.prepareGraph(start, end, polygonalMap);
+        const clonedGraph = this.prepareGraph(start, end, visibilityMap);
 
         return new AStar(start, end, clonedGraph, heuristic).search();
 

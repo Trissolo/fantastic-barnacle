@@ -46,7 +46,7 @@ export default class AStar
         // key<node>
         // value<node> (cheapest neighbor)
         // this.cameFrom = new Map();
-        this.cameFrom.set(start, null)
+        this.cameFrom.set(start, null);
 
     }
 

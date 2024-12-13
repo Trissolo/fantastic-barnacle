@@ -7,23 +7,23 @@ export default class GraphManager
         // return node
     }
 
-    static edgesContainerOf(node, graph)
-    {
-        return graph.get(node);
-    }
+    // static edgesContainerOf(node, graph)
+    // {
+    //     return graph.get(node);
+    // }
 
     static edgeAlreadyExists(node, neighbor, graph)
     {
-        return graph.has(node) && this.edgesContainerOf(node, graph).has(neighbor);
+        return graph.has(node) && graph.get(node).has(neighbor);
     }
 
     static addEdge(node, neighbor, dist, graph)
     {
         if (!this.edgeAlreadyExists(node, neighbor, graph))
         {
-            this.edgesContainerOf(node, graph).set(neighbor, dist);
+            graph.get(node).set(neighbor, dist);
 
-            this.edgesContainerOf(neighbor, graph).set(node, dist);
+            graph.get(neighbor).set(node, dist);
         }
     }
 
