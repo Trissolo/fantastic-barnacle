@@ -10,8 +10,6 @@ export default class AStar
 
     // heuristic;
 
-    // cameFrom;
-
     costSoFar = new Map();
 
     fScore = new Map();
@@ -30,11 +28,7 @@ export default class AStar
 
         this.heuristic = heuristic;
 
-        // this.costSoFar = new Map(); // [...graph.keys()].map(el => [el, 0]));  
-
         this.costSoFar.set(start, 0);
-
-        // this.fScore = new Map();
 
         this.fScore.set(start, 0);
 
@@ -45,7 +39,7 @@ export default class AStar
         // visited nodes
         // key<node>
         // value<node> (cheapest neighbor)
-        // this.cameFrom = new Map();
+
         this.cameFrom.set(start, null);
 
     }
@@ -54,7 +48,7 @@ export default class AStar
     {
         const {frontier, costSoFar, cameFrom, fScore, start, target, graph} = this;
 
-        while(!frontier.isEmpty())
+        while (frontier.orderedArr.length !== 0) // !frontier.isEmpty())
         {
             const currentNode = frontier.pop();
 

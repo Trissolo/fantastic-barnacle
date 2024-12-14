@@ -32,7 +32,7 @@ import GraphManager from "./GraphManager.mjs";
 
 export default class PMStroll
 {
-    // optional
+    // optional:
     // debug;
 
     // defaults:
@@ -50,8 +50,6 @@ export default class PMStroll
 
     constructor(scene)
     {
-        // console.log(scene);
-
         if (scene)
         {
             this.debug = new PMDebug(scene);
@@ -99,7 +97,7 @@ export default class PMStroll
             
             }
             
-            // after the first iteration, i.e. *from now*, 'isFirstPoly' must be false
+            // The fist polygon - the walkable one - has been checked. The remaining obstacle-polys need 'isFirstPoly' to be false
             isFirstPoly = false;
         
         }
@@ -170,16 +168,16 @@ export default class PMStroll
 
         rayPoints[0] = GetMidPoint(ray);
 
-        let firstagain = false;
+        let isFirstAgain = false;
 
         for (const poly of visibilityMap.polygons)
         {
-            if (rayPoints.some(this.isContained, poly) === firstagain)
+            if (rayPoints.some(this.isContained, poly) === isFirstAgain)
             {
                 return false;
             }
 
-            firstagain = true;
+            isFirstAgain = true;
         }
 
         return true;
@@ -196,39 +194,21 @@ export default class PMStroll
         return this.contains(point.x, point.y);
     }
 
-    // addExtraNodeToClonedGraph(extraNode, clonedGraph, graphKeys, originalvisibilityMap)
-    // {
-    //     GraphManager.addNode(extraNode, clonedGraph);
-
-    //     for (const node of graphKeys) //  for (let i = 0; i < limit; i++)
-    //     {
-    //         // const node = graphKeys[i];
-
-    //         if (this.quickInLineOfSight(extraNode, node, originalvisibilityMap))
-    //         {
-    //             GraphManager.addEdge(extraNode, node, heuristic(extraNode, node), clonedGraph);
-    //         }
-    //     }
-
-    //     //just in case...
-    //     return clonedGraph;
-    // }
-
     prepareGraph(start, end, visibilityMap)
     {
-        // 1) Clone the Graph:
+        // 1) clone the Graph:
         const clonedGraph = GraphManager.cloneGraph(visibilityMap.graph);
 
-        // 2) Extract the Keys (extract the keys, which are used to create the edges of the new node):
+        // 2) get the vertices to be checked against the new one
         const graphKeys = [...clonedGraph.keys()];
 
+        // 3)
         for (const newVertex of [start, end])
         {
             GraphManager.addNode(newVertex, clonedGraph);
 
             for (const existingVertex of graphKeys)
             {
-    
                 if (this.quickInLineOfSight(newVertex, existingVertex, visibilityMap))
                 {
                     GraphManager.addEdge(newVertex, existingVertex, heuristic(newVertex, existingVertex), clonedGraph);

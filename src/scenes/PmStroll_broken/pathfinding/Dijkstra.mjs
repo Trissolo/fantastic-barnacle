@@ -21,7 +21,7 @@ export default class Dijkstra
 
         this.graph = graph;
 
-        this.costSoFar = new Map(); //[...graph.keys()].map(el => [el, 0]));
+        this.costSoFar = new Map();
         this.costSoFar.set(start, 0);
 
         this.frontier = new PriorityQueue(this.costSoFar);
@@ -33,19 +33,20 @@ export default class Dijkstra
         this.cameFrom = new Map();
         this.cameFrom.set(start, null);
 
-        // start the search immediately
-        // this.search();
     }
 
     search()
     {
         const {frontier, costSoFar, cameFrom, target, graph} = this;
 
-        while(!frontier.isEmpty())
+        while (frontier.orderedArr.length !== 0) // !frontier.isEmpty())
         {
             const currentNode = frontier.pop();
 
-            if (currentNode === target) {return this.getPath()}
+            if (currentNode === target)
+            {
+                return this.getPath();
+            }
 
             for (const [neighbor, distance] of graph.get(currentNode))
             {
