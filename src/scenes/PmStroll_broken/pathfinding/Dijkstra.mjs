@@ -82,7 +82,7 @@ export default class Dijkstra
         {
             this.destroy();
             
-            return path
+            return path;
         }
 
         path.push(currNode);
@@ -102,7 +102,7 @@ export default class Dijkstra
 
         this.destroy();
 
-        return path
+        return path;
 	}
 
     destroy()
@@ -111,18 +111,15 @@ export default class Dijkstra
         this.frontier.orderedArr = undefined;
         this.frontier.distancesMap = undefined;
         this.frontier = undefined;
+     
+        this.costSoFar = this.costSoFar.clear();
 
-        this.costSoFar.clear();
-        this.costSoFar = undefined;
-
-        this.cameFrom.clear();
-        this.cameFrom = undefined;
+        this.cameFrom = this.cameFrom.clear();
 
         this.start = undefined;
         this.target = undefined;
 
-        GraphManager.destroyGraph(this.graph);
-        this.graph = undefined;
+        this.graph = GraphManager.destroyGraph(this.graph);
     }
 
 }

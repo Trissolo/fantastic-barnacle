@@ -14,17 +14,46 @@ export default class GraphManager
 
     static edgeAlreadyExists(node, neighbor, graph)
     {
-        return graph.has(node) && graph.get(node).has(neighbor);
+        // original:
+        // return graph.has(node) && graph.get(node).has(neighbor);
+
+        // recent code (works), maybe too redundant:
+        // return graph.get(node).has(neighbor) && graph.get(neighbor).has(node);
+
+        // quick test
+        return graph.get(node).has(neighbor);
     }
 
     static addEdge(node, neighbor, dist, graph)
     {
-        if (!this.edgeAlreadyExists(node, neighbor, graph))
+        // Paranoid check
+        if (!graph.has(node))
         {
-            graph.get(node).set(neighbor, dist);
-
-            graph.get(neighbor).set(node, dist);
+            console.error(node, "Node is absent. Aborting");
         }
+
+        if (!graph.has(neighbor))
+        {
+            console.error(neighbor, "For some reason 'point A' is present in the graph, but point B (neighbor) is not. Aborting.");
+        }
+        
+        
+        if (graph.get(node).has(neighbor))
+        {
+            return; // console.log("%cEdge already present", node !== neighbor? "background-color:#2378db": "background-color:#666", node, neighbor);
+        }
+
+        graph.get(node).set(neighbor, dist);
+
+        graph.get(neighbor).set(node, dist);
+
+        // original code
+        // if (!this.edgeAlreadyExists(node, neighbor, graph))
+        // {
+        //     graph.get(node).set(neighbor, dist);
+
+        //     graph.get(neighbor).set(node, dist);
+        // }
     }
 
     static cloneGraph(graph)
@@ -51,12 +80,17 @@ export default class GraphManager
 
     static destroyGraph(graph)
     {
-        for (const [orig, container] of graph)
+        for (const val of graph.values())
         {
-            graph.get(orig).clear();
+            val.clear()
         }
 
-        graph.clear();
+        // for (const [orig, container] of graph)
+        // {
+        //     graph.get(orig).clear();
+        // }
+
+        return graph.clear();
 
         // for (const [orig, container] of graph)
         // {

@@ -1,4 +1,3 @@
-//import Phaser from "phaser";
 import { Geom } from "phaser";
 
 export default class VisibilityMap
@@ -9,9 +8,9 @@ export default class VisibilityMap
         
         this.polygons = [];
 
-        for (const numbersAry of aryOfNumberArys)
+        for (const phaserPolygonParams of aryOfNumberArys)
         {
-            this.polygons.push(new Geom.Polygon(numbersAry));
+            this.polygons.push(new Geom.Polygon(phaserPolygonParams));
         }
     }
 

@@ -17,6 +17,8 @@ export default class PMDebug
     clear()
     {
         this.graphics.clear();
+
+        return this;
     }
 
     showPolygons(polygonalMap)

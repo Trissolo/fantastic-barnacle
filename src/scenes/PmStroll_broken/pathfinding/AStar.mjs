@@ -131,22 +131,19 @@ export default class AStar
         this.frontier.distancesMap = undefined;
         this.frontier = undefined;
 
-        this.costSoFar.clear();
-        this.costSoFar = undefined;
+        
+        this.costSoFar = this.costSoFar.clear();
 
         this.heuristic = undefined;
 
-        this.fScore.clear();
-        this.fScore = undefined;
-
-        this.cameFrom.clear();
-        this.cameFrom = undefined;
+        this.fScore = this.fScore.clear();
+     
+        this.cameFrom = this.cameFrom.clear();
 
         this.start = undefined;
         this.target = undefined;
 
-        GraphManager.destroyGraph(this.graph);
-        this.graph = undefined;
+        this.graph = GraphManager.destroyGraph(this.graph);
     }
 
 }
