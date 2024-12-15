@@ -14,10 +14,10 @@ const {LineToLine} = Phaser.Geom.Intersects;
 
 
 // I'm more and more sure that this is useless
-function vector2LikeFromObject(obj)
-{
-    return {x: obj.x, y: obj.y};
-}
+// function vector2LikeFromObject(obj)
+// {
+//     return {x: obj.x, y: obj.y};
+// }
 
 
 import AnyAgainstAllOthers from "./generators/AnyAgainstAllOthers.mjs";
@@ -84,7 +84,8 @@ export default class PMStroll
         // this.visibilityMaps.set(name, visMap);
 
         console.dir("new VisibilityMap", visMap);
-        console.log(GraphManager.graphToString(graph));
+
+        // console.log(GraphManager.graphToString(graph));
 
         return visMap;
     }
@@ -241,8 +242,11 @@ export default class PMStroll
 
     static pathDijkstra(start, end, visibilityMap)
     {
-        start = vector2LikeFromObject(start);
-        end = vector2LikeFromObject(end);
+        // start = vector2LikeFromObject(start);
+        // end = vector2LikeFromObject(end);
+
+        start = {x: start.x, y: start.y};
+        end = {x: end.x, y: end.y};
 
         const clonedGraph = this.prepareGraph(start, end, visibilityMap);
 
@@ -252,8 +256,11 @@ export default class PMStroll
 
     static pathAStar(start, end, visibilityMap)
     {
-        start = vector2LikeFromObject(start);
-        end = vector2LikeFromObject(end);
+        // start = vector2LikeFromObject(start);
+        // end = vector2LikeFromObject(end);
+
+        start = {x: start.x, y: start.y};
+        end = {x: end.x, y: end.y};
 
         const clonedGraph = this.prepareGraph(start, end, visibilityMap);
 

@@ -70,7 +70,7 @@ export default class Dijkstra
             }
         }
 
-        return this.getPath()
+        return this.getPath();
     }
 
     getPath()
