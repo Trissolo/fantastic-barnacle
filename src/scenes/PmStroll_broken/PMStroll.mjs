@@ -12,6 +12,8 @@ const {GetMidPoint} = Phaser.Geom.Line;
 
 const {LineToLine} = Phaser.Geom.Intersects;
 
+
+// I'm more and more sure that this is useless
 function vector2LikeFromObject(obj)
 {
     return {x: obj.x, y: obj.y};
@@ -25,7 +27,7 @@ import EachPolygonSide from "./generators/EachPolygonSide.mjs";
 import EachVectorAndAdjacents from "./generators/EachVectorAndAdjacents.mjs";
 
 
-import VisibilityMap from "./VisibilityMap.mjs";
+// import VisibilityMap from "./VisibilityMap.mjs";
 
 import GraphManager from "./GraphManager.mjs";
 
@@ -36,30 +38,44 @@ export default class PMStroll
     // debug;
 
     // defaults:
-    epsilon = 0.03;
+    static epsilon = 0.03;
 
-    splitAmount = 5;
+    static splitAmount = 5;
 
     // for recycle:
-    vertexA = new Phaser.Math.Vector2();
+    static vertexA = new Phaser.Math.Vector2();
 
-    vertexB = new Phaser.Math.Vector2();
+    static vertexB = new Phaser.Math.Vector2();
 
-    out = new Phaser.Math.Vector2();
+    static out = new Phaser.Math.Vector2();
 
 
     constructor(scene)
+    {}
+
+    static useDebug(scene)
     {
-        if (scene)
-        {
-            this.debug = new PMDebug(scene);
-        }
+        this.debug = new PMDebug(scene);
+        
+        return this;
     }
 
     // test simple add
-    addVisibilityMap(aryOfPhaserPolygonParams)
+    static addVisibilityMap(aryOfPhaserPolygonParams)
     {
-        const visMap = new VisibilityMap(aryOfPhaserPolygonParams);
+        // 'Build" the VisibilityMap
+        const graph = new Map();
+        
+        const polygons = [];
+
+        for (const phaserPolygonParams of aryOfPhaserPolygonParams)
+        {
+            polygons.push(new Phaser.Geom.Polygon(phaserPolygonParams));
+        }
+
+        const visMap = {graph, polygons};  // new VisibilityMap(aryOfPhaserPolygonParams);
+
+        //
 
         this.grabConcave(visMap)
             .checkAdjacent(visMap)
@@ -68,11 +84,12 @@ export default class PMStroll
         // this.visibilityMaps.set(name, visMap);
 
         console.dir("new VisibilityMap", visMap);
+        console.log(GraphManager.graphToString(graph));
 
         return visMap;
     }
 
-    grabConcave(visibilityMap)
+    static grabConcave(visibilityMap)
     {
         const {vertexA, vertexB} = this;
         
@@ -107,7 +124,7 @@ export default class PMStroll
     } // end grabConcave
 
 
-    checkAdjacent(visibilityMap)
+    static checkAdjacent(visibilityMap)
     {
         const {graph} = visibilityMap;
 
@@ -128,7 +145,7 @@ export default class PMStroll
 
     } // end checkAdjacent
 
-    connectNodes(visibilityMap, graph = visibilityMap.graph)
+    static connectNodes(visibilityMap, graph = visibilityMap.graph)
     {
         for (const [concaveA, concaveB] of AnyAgainstAllOthers([...graph.keys()]))
         {
@@ -139,7 +156,7 @@ export default class PMStroll
         }
     }
 
-    quickInLineOfSight(start, end, visibilityMap)
+    static quickInLineOfSight(start, end, visibilityMap)
     {
         //the segment to check against any polygon side
         const ray = new Phaser.Geom.Line().setFromObjects(start, end);
@@ -184,17 +201,17 @@ export default class PMStroll
 
     } // end quickInLineOfSight
 
-    itsNear(rayA, rayB, sideA, sideB, recycledVec = new Phaser.Math.Vector2())
+    static itsNear(rayA, rayB, sideA, sideB, recycledVec = new Phaser.Math.Vector2())
     {
         return (recycledVec.setFromObject(rayA).fuzzyEquals(sideA, this.epsilon) || recycledVec.setFromObject(rayB).fuzzyEquals(sideB, this.epsilon)) || (recycledVec.setFromObject(rayB).fuzzyEquals(sideA, this.epsilon) || recycledVec.setFromObject(rayA).fuzzyEquals(sideB, this.epsilon));
     }
 
-    isContained(point) //, idx, ary)
+    static isContained(point) //, idx, ary)
     {
         return this.contains(point.x, point.y);
     }
 
-    prepareGraph(start, end, visibilityMap)
+    static prepareGraph(start, end, visibilityMap)
     {
         // 1) clone the Graph:
         const clonedGraph = GraphManager.cloneGraph(visibilityMap.graph);
@@ -222,7 +239,7 @@ export default class PMStroll
         return clonedGraph;
     }
 
-    pathDijkstra(start, end, visibilityMap)
+    static pathDijkstra(start, end, visibilityMap)
     {
         start = vector2LikeFromObject(start);
         end = vector2LikeFromObject(end);
@@ -233,7 +250,7 @@ export default class PMStroll
 
     }  // end pathDijkstra
 
-    pathAStar(start, end, visibilityMap)
+    static pathAStar(start, end, visibilityMap)
     {
         start = vector2LikeFromObject(start);
         end = vector2LikeFromObject(end);
@@ -245,3 +262,33 @@ export default class PMStroll
     } // end pathAStar
 
 }
+
+// the original 'Phaser.Geom.Line.GetPoints' function, in case it gets changed in the future:
+// function GetPoints(line, quantity, stepRate, out)
+// {
+//     if (out === undefined) { out = []; }
+
+//     //  If quantity is a falsey value (false, null, 0, undefined, etc) then we calculate it based on the stepRate instead.
+//     if (!quantity && stepRate > 0)
+//     {
+//         quantity = Length(line) / stepRate;
+//     }
+
+//     var x1 = line.x1;
+//     var y1 = line.y1;
+
+//     var x2 = line.x2;
+//     var y2 = line.y2;
+
+//     for (var i = 0; i < quantity; i++)
+//     {
+//         var position = i / quantity;
+
+//         var x = x1 + (x2 - x1) * position;
+//         var y = y1 + (y2 - y1) * position;
+
+//         out.push(new Point(x, y));
+//     }
+
+//     return out;
+// }
