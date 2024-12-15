@@ -3,101 +3,51 @@ export default class GraphManager
     static addNode(node, graph)
     {
         graph.set(node, new Map());
-
-        // return node
-    }
-
-    // static edgesContainerOf(node, graph)
-    // {
-    //     return graph.get(node);
-    // }
-
-    static edgeAlreadyExists(node, neighbor, graph)
-    {
-        // original:
-        // return graph.has(node) && graph.get(node).has(neighbor);
-
-        // recent code (works), maybe too redundant:
-        // return graph.get(node).has(neighbor) && graph.get(neighbor).has(node);
-
-        // quick test
-        return graph.get(node).has(neighbor);
     }
 
     static addEdge(node, neighbor, dist, graph)
     {
         // Paranoid check
-        if (!graph.has(node))
-        {
-            console.error(node, "Node is absent. Aborting");
-        }
+        // if (!graph.has(node))
+        // {
+        //     console.error(node, "Node is absent. Aborting");
+        // }
 
-        if (!graph.has(neighbor))
-        {
-            console.error(neighbor, "For some reason 'point A' is present in the graph, but point B (neighbor) is not. Aborting.");
-        }
-        
-        
+        // if (!graph.has(neighbor))
+        // {
+        //     console.error(neighbor, "For some reason 'point A' is present in the graph, but point B (neighbor) is not. Aborting.");
+        // }
+             
         if (graph.get(node).has(neighbor))
         {
-            return; // console.log("%cEdge already present", node !== neighbor? "background-color:#2378db": "background-color:#666", node, neighbor);
+            return;
         }
 
         graph.get(node).set(neighbor, dist);
 
         graph.get(neighbor).set(node, dist);
-
-        // original code
-        // if (!this.edgeAlreadyExists(node, neighbor, graph))
-        // {
-        //     graph.get(node).set(neighbor, dist);
-
-        //     graph.get(neighbor).set(node, dist);
-        // }
     }
 
     static cloneGraph(graph)
     {
-        const cloneGraph = new Map();
+        const clone = new Map();
 
         for (const [orig, container] of graph)
         {
-            cloneGraph.set(orig, new Map(container));
-
-            // const cloneCont = new Map();
-
-            // cloneGraph.set(orig, cloneCont);
-
-            // for (const [neigh, dist] of container)
-            // {
-            //     cloneCont.set(neigh, dist);
-            // }
-
+            clone.set(orig, new Map(container));
         }
 
-        return cloneGraph;
+        return clone;
     }
 
     static destroyGraph(graph)
     {
-        for (const val of graph.values())
+        for (const value of graph.values())
         {
-            val.clear()
+            value.clear();
         }
 
-        // for (const [orig, container] of graph)
-        // {
-        //     graph.get(orig).clear();
-        // }
-
         return graph.clear();
-
-        // for (const [orig, container] of graph)
-        // {
-        //     console.log("(After) %o -> %o", orig, graph.get(orig));
-        // }
-        
-        // return graph;
     }
 
     static graphToString(graph)

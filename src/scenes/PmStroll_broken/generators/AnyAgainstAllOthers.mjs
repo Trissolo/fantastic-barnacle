@@ -8,6 +8,7 @@
 // B C
 // B D
 // C D
+
 export default function* AnyAgainstAllOthers(ary)
 {
     const jMax = ary.length;

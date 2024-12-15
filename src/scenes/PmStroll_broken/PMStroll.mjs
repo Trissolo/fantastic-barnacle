@@ -13,21 +13,12 @@ const {GetMidPoint} = Phaser.Geom.Line;
 const {LineToLine} = Phaser.Geom.Intersects;
 
 
-// I'm more and more sure that this is useless
-// function vector2LikeFromObject(obj)
-// {
-//     return {x: obj.x, y: obj.y};
-// }
-
-
 import AnyAgainstAllOthers from "./generators/AnyAgainstAllOthers.mjs";
 
 import EachPolygonSide from "./generators/EachPolygonSide.mjs";
 
 import EachVectorAndAdjacents from "./generators/EachVectorAndAdjacents.mjs";
 
-
-// import VisibilityMap from "./VisibilityMap.mjs";
 
 import GraphManager from "./GraphManager.mjs";
 
@@ -49,10 +40,6 @@ export default class PMStroll
 
     static out = new Phaser.Math.Vector2();
 
-
-    constructor(scene)
-    {}
-
     static useDebug(scene)
     {
         this.debug = new PMDebug(scene);
@@ -73,9 +60,9 @@ export default class PMStroll
             polygons.push(new Phaser.Geom.Polygon(phaserPolygonParams));
         }
 
-        const visMap = {graph, polygons};  // new VisibilityMap(aryOfPhaserPolygonParams);
+        const visMap = {graph, polygons};
 
-        //
+        //bui
 
         this.grabConcave(visMap)
             .checkAdjacent(visMap)
@@ -84,8 +71,6 @@ export default class PMStroll
         // this.visibilityMaps.set(name, visMap);
 
         console.dir("new VisibilityMap", visMap);
-
-        // console.log(GraphManager.graphToString(graph));
 
         return visMap;
     }
@@ -96,7 +81,7 @@ export default class PMStroll
         
         let isFirstPoly = true;
         
-        //iterate allwalkable poly
+        //iterate all walkable poly
         for (const {points} of visibilityMap.polygons)
         {
             //iterate all vertices in each poly
@@ -106,8 +91,7 @@ export default class PMStroll
                 vertexA.copy(succ).subtract(curr);
 
                 vertexB.copy(curr).subtract(prec);
-
-                
+     
                 if( (vertexB.cross(vertexA) < 0) === isFirstPoly )
                 {
                     GraphManager.addNode(curr, visibilityMap.graph);
@@ -123,7 +107,6 @@ export default class PMStroll
         return this;
         
     } // end grabConcave
-
 
     static checkAdjacent(visibilityMap)
     {
@@ -165,7 +148,7 @@ export default class PMStroll
         //One side of current polygon
         const polygonSide = new Phaser.Geom.Line();
 
-        // recycled Vector2
+        // internal recycled Vector2
         const tempVec = new Phaser.Math.Vector2();
 
         for (const {points} of visibilityMap.polygons)
@@ -220,7 +203,7 @@ export default class PMStroll
         // 2) get the vertices to be checked against the new one
         const graphKeys = [...clonedGraph.keys()];
 
-        // 3)
+        // 3) create edge if needed
         for (const newVertex of [start, end])
         {
             GraphManager.addNode(newVertex, clonedGraph);
@@ -233,7 +216,7 @@ export default class PMStroll
                 }
             }
 
-            // From now, the 'newVertex' belongs in the graph, so add it to
+            // From now, the 'newVertex' belongs in the graph, so add it to be checked against the next vertex
             graphKeys.push(newVertex);
         }
 
@@ -242,10 +225,9 @@ export default class PMStroll
 
     static pathDijkstra(start, end, visibilityMap)
     {
-        // start = vector2LikeFromObject(start);
-        // end = vector2LikeFromObject(end);
-
+        // disposable clones of the two new vertices, although I'm not sure garbage collection will benefit from them
         start = {x: start.x, y: start.y};
+
         end = {x: end.x, y: end.y};
 
         const clonedGraph = this.prepareGraph(start, end, visibilityMap);
@@ -256,10 +238,9 @@ export default class PMStroll
 
     static pathAStar(start, end, visibilityMap)
     {
-        // start = vector2LikeFromObject(start);
-        // end = vector2LikeFromObject(end);
-
+        // disposable clones of the two new vertices, although I'm not sure garbage collection will benefit from them
         start = {x: start.x, y: start.y};
+        
         end = {x: end.x, y: end.y};
 
         const clonedGraph = this.prepareGraph(start, end, visibilityMap);

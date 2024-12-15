@@ -17,7 +17,6 @@ export default function* EachVectorAndAdjacents(ary)
     {
         yield [ ary[i], ary[i + 1], ary[j] ];
     }
-
+    
     yield [ ary[i], ary[0], ary[j] ];
-
-};
+}
