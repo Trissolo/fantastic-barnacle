@@ -112,11 +112,10 @@ export default class PMStroll
     {
         const {graph} = visibilityMap;
 
-        for (const polygon of visibilityMap.polygons)
+        for (const {points} of visibilityMap.polygons)
         {
-
             // EachPolygonSide
-            for (const [sidePointA, sidePointB] of EachPolygonSide(polygon.points))
+            for (const [sidePointA, sidePointB] of EachPolygonSide(points))
             {
                 if (graph.has(sidePointA) && graph.has(sidePointB))
                 {
@@ -197,7 +196,7 @@ export default class PMStroll
 
     static prepareGraph(start, end, visibilityMap)
     {
-        // 1) clone the Graph:
+        // 1) clone the base Graph:
         const clonedGraph = GraphManager.cloneGraph(visibilityMap.graph);
 
         // 2) get the vertices to be checked against the new one
