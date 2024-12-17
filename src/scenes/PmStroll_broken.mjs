@@ -91,7 +91,11 @@ export class PmStroll extends Scene
         else if (pointer.rightButtonDown())
         {
             this.dest.setPosition(Math.floor(pointer.worldX), Math.floor(pointer.worldY));
+
+            console.log("%c Is in legal position? ", PMStroll.permittedPosition(this.dest, this.vismap)? "color:#685;background-color:#6f6": "color:#a87;background-color:#544", PMStroll.permittedPosition(this.dest, this.vismap));
+
             this.pmstroll.debug.clear().showPolygons(this.vismap);
+
             this.pressedZ();
         }
         

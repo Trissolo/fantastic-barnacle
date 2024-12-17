@@ -56,15 +56,15 @@ export default class GraphManager
         
         for (const [pointA, edges] of graph)
         {
-           let stringEdges = "";
-           
-           for (const [pointB, distance] of edges)
-           {
-             stringEdges += `\n├── {x: ${pointB.x}, y: ${pointB.y}} -> ${distance}`
-           }
-           res += `\n\n{x: ${pointA.x}, y: ${pointA.y}}\n|` + stringEdges+"\n\t";
+            let stringEdges = "";
+            
+            for (const [pointB, distance] of edges)
+            {
+                stringEdges += `\n├── {x: ${pointB.x}, y: ${pointB.y}} -> ${distance}`;
+            }
+            res += `\n\n{x: ${pointA.x}, y: ${pointA.y}}\n|` + stringEdges+"\n\t";
         }
         
-      return res;
+        return res;
     }
 }

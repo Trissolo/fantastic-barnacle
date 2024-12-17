@@ -248,6 +248,23 @@ export default class PMStroll
 
     } // end pathAStar
 
+    static permittedPosition({x, y}, {polygons})
+    {
+        for (let i = 0, poly, isFirst = false; i < polygons.length; i++)
+        {
+            poly = polygons[i];
+
+            if (poly.contains(x, y) === isFirst)
+            {
+                return false;
+            }
+
+            isFirst = true;
+        }
+
+        return true;
+    }
+
 }
 
 // the original 'Phaser.Geom.Line.GetPoints' function, in case it gets changed in the future:
