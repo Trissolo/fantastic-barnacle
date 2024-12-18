@@ -98,20 +98,15 @@ export default class AStar
             return path;
         }
 
-        path.push(currNode);
-
-        // Maybe, to avoid putting the start node in the path array maybe we should:
-        // while (cameFrom.get(currNode) !== start)
-        
         while (currNode !== this.start)
         {
+            path.push({x: currNode.x, y: currNode.y}); //currNode);
+
             currNode = this.cameFrom.get(currNode);
-
-            // path.push(currNode);
-
-            //maybe a new obj?
-            path.push({x: currNode.x, y: currNode.y});
         }
+
+        // If for some reason you want the "start" coordinates to be included in the path, uncomment the next line (at 109)
+        // path.push({x: currNode.x, y: currNode.y});
 
         this.destroy();
 
