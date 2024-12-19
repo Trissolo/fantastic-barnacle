@@ -58,7 +58,8 @@ export class PmStroll extends Scene
         console.log("VISMAP", this.vismap);
 
 
-        this.pmstroll.debug.showPolygons(this.vismap);
+        //this.pmstroll.debug.showPolygons(this.vismap);
+        this.pmstroll.debug.showGraph(this.vismap.graph);
         
         this.input.keyboard.on("keydown-Z", this.pressedZ, this);
 
@@ -67,6 +68,8 @@ export class PmStroll extends Scene
     
     onClick(pointer, currentlyOver)
     {
+        console.log("Click at:", `{x: ${Math.floor(pointer.worldX)}, y: ${Math.floor(pointer.worldY)}}`);
+
         if (pointer.middleButtonDown())
         {
             this.player.setPosition(Math.floor(pointer.worldX), Math.floor(pointer.worldY));
@@ -83,7 +86,7 @@ export class PmStroll extends Scene
             // just show the path
             if(testDijkstraPath.length)
             {
-                this.pmstroll.debug.showPath(testDijkstraPath, 0xb845a9);
+                this.pmstroll.debug.showPath(testDijkstraPath, false, 0xb845a9);
             }
     
         }
@@ -114,9 +117,12 @@ export class PmStroll extends Scene
         // just show the path
         if(testAStarPath.length)
         {
+            // testAStarPath.push(this.player);
             // this.pmstroll.debug.graphics.clear();
 
-            this.pmstroll.debug.showPath(testAStarPath, 0x9aba67);
+            // this.pmstroll.debug.showGraph(this.vismap.graph, false);
+
+            this.pmstroll.debug.showPath(testAStarPath, this.player, 0x9aba67);
         }
     }
 }

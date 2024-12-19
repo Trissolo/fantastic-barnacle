@@ -46,38 +46,41 @@ export default class PMDebug
     }
 
     lineFromVecs(vecA, vecB, color = 0xf4f499)
-	{
-		// this.setLineColor(color);
+    {
+        // this.setLineColor(color);
         this.graphics.lineStyle(1, color, 0.2);
 
-		if (vecB)
-		{
-			this.graphics.lineBetween(vecA.x, vecA.y, vecB.x, vecB.y);
-		}
-		else
-		{
+        if (vecB)
+        {
+            this.graphics.lineBetween(vecA.x, vecA.y, vecB.x, vecB.y);
+        }
+        else
+        {
             this.graphics.strokeLineShape(vecA);
-		}
-	}
+        }
+    }
 
-    showGraph(graph)
+    showGraph(graph, clearBefore = true)
     {
-        this.graphics.clear();
+        if (clearBefore)
+        {
+            this.graphics.clear();
+        }
 
         for(const [node, edges] of graph)
         {
-            for(const [neigh, qwe] of edges)
+            for(const neigh of edges.keys())
             {
                 this.lineFromVecs(node, neigh);
             }
         }
     }
 
-    showPath(vecAry, color = 0xffff99)
+    showPath(vecAry, startVector, color = 0xffff99)
 	{
         // this.setLineColor(color);
         this.graphics.lineStyle(1, color, 1)
-        this.graphics.strokePoints(vecAry, false, false);
+                    .strokePoints(startVector? [...vecAry, startVector]: vecAry, false, false);
 	}
 
     drawPolyMap(polygonalMap)
@@ -88,7 +91,7 @@ export default class PMDebug
         {
             this.graphics.fillCircle(node.x, node.y, 3);
 
-            for (const [neighbor, dist] of neighborContainer)
+            for (const neighbor of neighborContainer.keys())
             {
                 // console.log(neighborContainer === polygonalMap.graph.get(node), "clone size:", neighborContainer.size)
                 this.lineFromVecs(node, neighbor, 0xffffca)// Phaser.Math.Between(0x9aff00, 0xffff9a))

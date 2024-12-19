@@ -105,7 +105,7 @@ export default class AStar
             currNode = this.cameFrom.get(currNode);
         }
 
-        // If for some reason you want the "start" coordinates to be included in the path, uncomment the next line (at 109)
+        // If for some reason you want the "start" coordinates to be included in the path, uncomment the next line
         // path.push({x: currNode.x, y: currNode.y});
 
         this.destroy();

@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import {Geom as PhaserGeom, Math as PhaserMath} from "phaser";
 
 import PMDebug from "./pmdebug/PMDebug.mjs";
 
@@ -6,11 +6,11 @@ import Dijkstra from "./pathfinding/Dijkstra.mjs";
 
 import AStar from "./pathfinding/AStar.mjs";
 
-const {BetweenPoints: heuristic} = Phaser.Math.Distance;
+const {BetweenPoints: heuristic} = PhaserMath.Distance;
 
-const {GetMidPoint} = Phaser.Geom.Line;
+const {GetMidPoint} = PhaserGeom.Line;
 
-const {LineToLine} = Phaser.Geom.Intersects;
+const {LineToLine} = PhaserGeom.Intersects;
 
 
 import AnyAgainstAllOthers from "./generators/AnyAgainstAllOthers.mjs";
@@ -34,11 +34,11 @@ export default class PMStroll
     static splitAmount = 5;
 
     // for recycle:
-    static vertexA = new Phaser.Math.Vector2();
+    static vertexA = new PhaserMath.Vector2();
 
-    static vertexB = new Phaser.Math.Vector2();
+    static vertexB = new PhaserMath.Vector2();
 
-    static out = new Phaser.Math.Vector2();
+    static out = new PhaserMath.Vector2();
 
     static useDebug(scene)
     {
@@ -57,7 +57,7 @@ export default class PMStroll
 
         for (const phaserPolygonParams of aryOfPhaserPolygonParams)
         {
-            polygons.push(new Phaser.Geom.Polygon(phaserPolygonParams));
+            polygons.push(new PhaserGeom.Polygon(phaserPolygonParams));
         }
 
         const visMap = {graph, polygons};
@@ -142,13 +142,13 @@ export default class PMStroll
     static quickInLineOfSight(start, end, visibilityMap)
     {
         //the segment to check against any polygon side
-        const ray = new Phaser.Geom.Line().setFromObjects(start, end);
+        const ray = new PhaserGeom.Line().setFromObjects(start, end);
 
         //One side of current polygon
-        const polygonSide = new Phaser.Geom.Line();
+        const polygonSide = new PhaserGeom.Line();
 
         // internal recycled Vector2
-        const tempVec = new Phaser.Math.Vector2();
+        const tempVec = new PhaserMath.Vector2();
 
         for (const {points} of visibilityMap.polygons)
         {
@@ -184,7 +184,7 @@ export default class PMStroll
 
     } // end quickInLineOfSight
 
-    static itsNear(rayA, rayB, sideA, sideB, recycledVec = new Phaser.Math.Vector2())
+    static itsNear(rayA, rayB, sideA, sideB, recycledVec = new PhaserMath.Vector2())
     {
         return (recycledVec.setFromObject(rayA).fuzzyEquals(sideA, this.epsilon) || recycledVec.setFromObject(rayB).fuzzyEquals(sideB, this.epsilon)) || (recycledVec.setFromObject(rayB).fuzzyEquals(sideA, this.epsilon) || recycledVec.setFromObject(rayA).fuzzyEquals(sideB, this.epsilon));
     }
@@ -248,13 +248,11 @@ export default class PMStroll
 
     } // end pathAStar
 
-    static permittedPosition({x, y}, {polygons})
+    static permittedPosition(point2Like, {polygons})
     {
         for (let i = 0, poly, isFirst = false; i < polygons.length; i++)
         {
-            poly = polygons[i];
-
-            if (poly.contains(x, y) === isFirst)
+            if (polygons[i].contains(point2Like.x, point2Like.y) === isFirst)
             {
                 return false;
             }
