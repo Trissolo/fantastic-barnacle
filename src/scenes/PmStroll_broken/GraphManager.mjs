@@ -6,18 +6,7 @@ export default class GraphManager
     }
 
     static addEdge(node, neighbor, dist, graph)
-    {
-        // Paranoid check
-        // if (!graph.has(node))
-        // {
-        //     console.error(node, "Node is absent. Aborting");
-        // }
-
-        // if (!graph.has(neighbor))
-        // {
-        //     console.error(neighbor, "For some reason 'point A' is present in the graph, but point B (neighbor) is not. Aborting.");
-        // }
-             
+    {             
         if (graph.get(node).has(neighbor))
         {
             return;

@@ -1,26 +1,28 @@
-import {Geom as PhaserGeom, Math as PhaserMath} from "phaser";
+import Phaser from "phaser";
 
-import PMDebug from "./pmdebug/PMDebug.mjs";
+// Phaser.Math.Vector2
+// Phaser.Math.Distance.BetweenPoints
+const {Vector2, Distance: {BetweenPoints: heuristic}} = Phaser.Math;
 
+// Phaser.Geom.Polygon;
+// Phaser.Geom.Line;
+// Phaser.Geom.Line.GetMidPoint;
+// Phaser.Geom.Intersects.LineToLine;
+const {Polygon, Line, Line: {GetMidPoint}, Intersects: {LineToLine}} = Phaser.Geom;
+
+// generators
+import {AnyAgainstAllOthers, EachPolygonSide, EachVectorAndAdjacents} from "./generators/index.mjs";
+
+// graph
+import GraphManager from "./GraphManager.mjs";
+
+// pathf algos
 import Dijkstra from "./pathfinding/Dijkstra.mjs";
 
 import AStar from "./pathfinding/AStar.mjs";
 
-const {BetweenPoints: heuristic} = PhaserMath.Distance;
-
-const {GetMidPoint} = PhaserGeom.Line;
-
-const {LineToLine} = PhaserGeom.Intersects;
-
-
-import AnyAgainstAllOthers from "./generators/AnyAgainstAllOthers.mjs";
-
-import EachPolygonSide from "./generators/EachPolygonSide.mjs";
-
-import EachVectorAndAdjacents from "./generators/EachVectorAndAdjacents.mjs";
-
-
-import GraphManager from "./GraphManager.mjs";
+// debug
+import PMDebug from "./pmdebug/PMDebug.mjs";
 
 
 export default class PMStroll
@@ -34,11 +36,11 @@ export default class PMStroll
     static splitAmount = 5;
 
     // for recycle:
-    static vertexA = new PhaserMath.Vector2();
+    static vertexA = new Vector2();
 
-    static vertexB = new PhaserMath.Vector2();
+    static vertexB = new Vector2();
 
-    static out = new PhaserMath.Vector2();
+    static out = new Vector2();
 
     static useDebug(scene)
     {
@@ -57,7 +59,7 @@ export default class PMStroll
 
         for (const phaserPolygonParams of aryOfPhaserPolygonParams)
         {
-            polygons.push(new PhaserGeom.Polygon(phaserPolygonParams));
+            polygons.push(new Polygon(phaserPolygonParams));
         }
 
         const visMap = {graph, polygons};
@@ -142,13 +144,13 @@ export default class PMStroll
     static quickInLineOfSight(start, end, visibilityMap)
     {
         //the segment to check against any polygon side
-        const ray = new PhaserGeom.Line().setFromObjects(start, end);
+        const ray = new Line().setFromObjects(start, end);
 
         //One side of current polygon
-        const polygonSide = new PhaserGeom.Line();
+        const polygonSide = new Line();
 
         // internal recycled Vector2
-        const tempVec = new PhaserMath.Vector2();
+        const tempVec = new Vector2();
 
         for (const {points} of visibilityMap.polygons)
         {
@@ -184,7 +186,7 @@ export default class PMStroll
 
     } // end quickInLineOfSight
 
-    static itsNear(rayA, rayB, sideA, sideB, recycledVec = new PhaserMath.Vector2())
+    static itsNear(rayA, rayB, sideA, sideB, recycledVec = new Vector2())
     {
         return (recycledVec.setFromObject(rayA).fuzzyEquals(sideA, this.epsilon) || recycledVec.setFromObject(rayB).fuzzyEquals(sideB, this.epsilon)) || (recycledVec.setFromObject(rayB).fuzzyEquals(sideA, this.epsilon) || recycledVec.setFromObject(rayA).fuzzyEquals(sideB, this.epsilon));
     }
